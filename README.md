@@ -96,7 +96,48 @@ symptom-scribe/
 Contributions, issues, and feature requests are welcome!
 Feel free to open a PR or issue in this repository.
 
+### PR Template
+
+### 📌 Related Issue
+```
+Closes #<issue-number>
+```
+> Link the issue this PR resolves. PRs without a linked issue will not be reviewed.
+
 ---
+
+
+### 📝 Description
+```
+What does this PR do?
+Why is this change needed?
+Keep it short and clear.
+```
+
+
+---
+
+### 📸 Screenshots *(required for UI changes)*
+
+| Before | After |
+|--------|-------|
+|        |       |
+
+---
+
+### ✅ Checklist
+```
+ [ ] Tested locally with `npm run dev`
+ [ ] No unrelated files changed
+ [ ] Follows existing code style (TypeScript + Tailwind)
+ [ ] PR is linked to an open issue
+ [ ] No console errors or warnings
+ [ ] GSSoC issue was assigned to me before I started
+```
+
+---
+
+
 
 ## 🧑‍💻 Author
 

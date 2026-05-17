@@ -50,7 +50,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Hero />
+
+      <header className="border-b border-border px-6 py-4">
+        <div className="container mx-auto flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-primary">
+            Symptom Scribe🩺
+          </h1>
+
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate("/auth")}>
+              Sign In
+            </Button>
+
+            <Button onClick={() => navigate("/auth")}>
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </header>
+
+  <Hero />
       
       {/* Features Section */}
       <section className="container mx-auto py-20 px-4">

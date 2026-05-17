@@ -12,7 +12,13 @@ const Layout = ({ children }: LayoutProps) => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <header className="h-14 border-b border-border flex items-center px-4 bg-card">
-            <SidebarTrigger />
+            <div className="font-semibold text-lg">
+              Health Tracker
+            </div>
+
+            <div className="ml-auto">
+              <SidebarTrigger />
+            </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
             {children}

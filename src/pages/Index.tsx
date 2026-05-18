@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Hero from "@/components/Hero";
 import { ArrowRight, Brain, Clock, TrendingUp, Users, Star, CheckCircle2, Heart, Activity, Shield } from "lucide-react";
+import { BackToTop } from "@/components/BackToTop";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -390,6 +391,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 };

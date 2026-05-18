@@ -7,19 +7,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import Hero from "@/components/Hero";
 import { ArrowRight, Brain, Clock, TrendingUp, Users, Star, CheckCircle2, Heart, Activity, Shield } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/AnimatedThemeToggler";
+import { BackToTop } from "@/components/BackToTop";
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-
-  useEffect(() => {
-    // Check if user is logged in and redirect to dashboard
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-  }, [navigate]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -401,6 +393,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 };

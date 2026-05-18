@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AnimatedThemeToggler } from "@/components/AnimatedThemeToggler";
+import { BackToTop } from "@/components/BackToTop";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
           <main className="flex-1 p-6 overflow-auto">
             {children}
           </main>
+          <BackToTop />
         </div>
       </div>
     </SidebarProvider>

@@ -59,7 +59,11 @@ export function AppSidebar() {
             </h2>
           )}
         </NavLink>
-        <SidebarTrigger />
+        
+        {/* ✅ Hidden on mobile, visible on laptop/desktop */}
+        <div className="hidden md:block">
+          <SidebarTrigger />
+        </div>
       </div>
 
       <SidebarContent>

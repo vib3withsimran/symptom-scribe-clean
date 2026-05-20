@@ -20,7 +20,11 @@ const Layout = ({ children }: LayoutProps) => {
 
             <div className="ml-auto flex items-center gap-2">
               <AnimatedThemeToggler />
-              <SidebarTrigger />
+              
+              {/* ✅ Visible ONLY on mobile. Hidden on laptop/desktop. */}
+              <div className="md:hidden">
+                <SidebarTrigger />
+              </div>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">

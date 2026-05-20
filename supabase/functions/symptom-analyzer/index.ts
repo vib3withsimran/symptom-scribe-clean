@@ -1,101 +1,151 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+import { RequestSchema } from "./validation.ts";
+import { detectEmergencySymptoms } from "./medicalSafety.ts";
+import { rateLimit } from "./rateLimit.ts";
+import { jsonResponse } from "./utils.ts";
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: corsHeaders,
+    });
   }
 
   try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const ip =
+      req.headers.get("x-forwarded-for") ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    const rateLimitResult = rateLimit(ip);
+
+    if (!rateLimitResult.success) {
+      return jsonResponse(
+        {
+          error: "Rate limit exceeded. Please try again later.",
+        },
+        429,
+        corsHeaders
+      );
     }
 
-    console.log("Analyzing symptoms with AI...");
+    const body = await req.json();
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional medical assistant helping users understand their symptoms. 
-            
+    const parsed = RequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return jsonResponse(
+        {
+          error: "Invalid request payload",
+          details: parsed.error.flatten(),
+        },
+        400,
+        corsHeaders
+      );
+    }
+
+    const { messages } = parsed.data;
+
+    const safetyCheck = detectEmergencySymptoms(messages);
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!LOVABLE_API_KEY) {
+      return jsonResponse(
+        {
+          error: "LOVABLE_API_KEY is not configured",
+        },
+        500,
+        corsHeaders
+      );
+    }
+
+    const systemPrompt = `
+You are a professional medical assistant helping users understand their symptoms.
+
 Your responses must follow this exact structure:
 
 **Possible Causes:**
-- [List 2-3 possible conditions based on symptoms]
+- List 2-3 possible conditions
 
-**Severity Level:** [Low/Moderate/High]
+**Severity Level:** Low/Moderate/High
 
 **Self-Care Recommendations:**
-- [Provide 2-3 actionable self-care tips]
-- [Include when to seek professional help]
+- Provide actionable advice
+- Include when to seek professional help
 
-**⚠️ Important:** This is general health information only. For accurate diagnosis and treatment, please consult a qualified healthcare provider.
+${safetyCheck.isEmergency
+        ? `
+IMPORTANT:
+The user's symptoms may indicate a medical emergency.
+Strongly encourage immediate professional medical attention.
+`
+        : ""
+      }
 
-Keep responses concise, clear, and empathetic. Always err on the side of caution when assessing severity.`
-          },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+⚠️ Important: This is general health information only. Consult a qualified healthcare provider for diagnosis and treatment.
+`;
+
+    const response = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt,
+            },
+            ...messages,
+          ],
+          stream: true,
+        }),
+      }
+    );
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service payment required. Please contact support." }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      
       const errorText = await response.text();
+
       console.error("AI gateway error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: "AI service error" }),
+
+      return jsonResponse(
         {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+          error: "AI service error",
+          status: response.status,
+        },
+        response.status,
+        corsHeaders
       );
     }
 
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+      },
     });
   } catch (error) {
     console.error("Error in symptom-analyzer:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+
+    return jsonResponse(
       {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+        error:
+          error instanceof Error ? error.message : "Unknown server error",
+      },
+      500,
+      corsHeaders
     );
   }
 });

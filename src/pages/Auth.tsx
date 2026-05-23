@@ -9,16 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, Loader2 } from "lucide-react";
 import { z } from "zod";
-import { showSuccess, showError } from "@/lib/toast-helpers";
-import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
-import {
-  evaluatePasswordStrength,
-  DEFAULT_PASSWORD_POLICY,
-} from "@/lib/password-strength";
+import { showError } from "@/lib/toast-helpers";
+import MultiStepSignUp from "@/components/registration/MultiStepSignUp";
 
 const emailSchema = z.string().email("Invalid email address");
 const signinPasswordSchema = z.string().min(1, "Password is required");
-const signupPasswordSchema = z.string().min(12, "Password must be at least 12 characters");
 
 const Auth = () => {
   // Separate state per tab — prevents field bleed when switching tabs
@@ -28,6 +23,8 @@ const Auth = () => {
   const [signUpPassword, setSignUpPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
@@ -74,6 +71,10 @@ const Auth = () => {
       if (!fullName.trim()) {
         throw new Error("Full name is required");
       }
+  const validateInputs = () => {
+    try {
+      emailSchema.parse(email);
+      signinPasswordSchema.parse(password);
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -240,6 +241,7 @@ const Auth = () => {
                   )}
                 </Button>
               </form>
+              <MultiStepSignUp />
             </TabsContent>
           </Tabs>
         </CardContent>

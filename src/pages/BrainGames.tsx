@@ -411,10 +411,7 @@ const wordTimeoutRef = useRef<number | null>(null);
 
     showInfo("Memorize these words!", "You have 10 seconds...");
 
-    setTimeout(() => {
-      setWordPhase("recall");
-      showWarning("Time's up!", "Now recall the words in order");
-    }, 10000);
+
   };
   
   useEffect(() => {
@@ -426,6 +423,14 @@ const wordTimeoutRef = useRef<number | null>(null);
 
     return () => clearInterval(timer);
   }, [wordPhase, timeLeft]);
+
+  // Cleanup timeout when leaving Word game or unmounting
+  useEffect(() => {
+    if (activeGame !== "word" && wordTimeoutRef.current) {
+      clearTimeout(wordTimeoutRef.current);
+      wordTimeoutRef.current = null;
+    }
+  }, [activeGame]);
 
   const generateMathQuestion = () => {
     const num1 = Math.floor(Math.random() * 50) + 10;

@@ -47,7 +47,7 @@ const BrainGames = () => {
   const [timedMode, setTimedMode] = useState(false);
   const [questionTimeLeft, setQuestionTimeLeft] = useState(15);
   const [showFireStreak, setShowFireStreak] = useState(false);
-  const timerRef = useRef<number | null>(null);  
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);  
   const TOTAL_QUESTIONS = 10;
   const XP_PER_QUESTION = 10;
   const XP_PER_LEVEL = 100;
@@ -755,7 +755,7 @@ const BrainGames = () => {
             <div className="text-center space-y-4">
               <div className="text-5xl font-bold text-foreground">{mathQuestion.num1} + {mathQuestion.num2} = ?</div>
               <div className="flex gap-4 items-center justify-center max-w-md mx-auto">
-                <input type="number" value={mathQuestion.answer || ""} onChange={(e) => setMathQuestion({ ...mathQuestion, answer: parseInt(e.target.value) || 0 })} onKeyPress={(e) => e.key === "Enter" && checkMathAnswer()} className="flex-1 px-4 py-3 text-2xl text-center border-2 border-border rounded-xl bg-background focus:outline-none focus:border-primary" placeholder="?" autoFocus />
+                <input type="number" value={mathQuestion.answer || ""} onChange={(e) => setMathQuestion({ ...mathQuestion, answer: e.target.value })} onKeyPress={(e) => e.key === "Enter" && checkMathAnswer()} className="flex-1 px-4 py-3 text-2xl text-center border-2 border-border rounded-xl bg-background focus:outline-none focus:border-primary" placeholder="?" autoFocus />
                 <Button onClick={checkMathAnswer} size="lg" className="px-8">Check</Button>
               </div>
             </div>

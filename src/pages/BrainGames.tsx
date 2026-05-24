@@ -47,7 +47,8 @@ const BrainGames = () => {
   const [timedMode, setTimedMode] = useState(false);
   const [questionTimeLeft, setQuestionTimeLeft] = useState(15);
   const [showFireStreak, setShowFireStreak] = useState(false);
-  const timerRef = useRef<number | null>(null);  
+  const timerRef = useRef<number | null>(null);
+const wordTimeoutRef = useRef<number | null>(null);  
   const TOTAL_QUESTIONS = 10;
   const XP_PER_QUESTION = 10;
   const XP_PER_LEVEL = 100;
@@ -403,13 +404,14 @@ const BrainGames = () => {
     setWordPhase("memorize");
     setTimeLeft(10);
     setActiveGame("word");
-
-    showInfo("Memorize these words!", "You have 10 seconds...");
-
-    setTimeout(() => {
+    wordTimeoutRef.current = window.setTimeout(() => {
       setWordPhase("recall");
       showWarning("Time's up!", "Now recall the words in order");
     }, 10000);
+
+    showInfo("Memorize these words!", "You have 10 seconds...");
+
+
   };
   
   useEffect(() => {
@@ -421,6 +423,14 @@ const BrainGames = () => {
 
     return () => clearInterval(timer);
   }, [wordPhase, timeLeft]);
+
+  // Cleanup timeout when leaving Word game or unmounting
+  useEffect(() => {
+    if (activeGame !== "word" && wordTimeoutRef.current) {
+      clearTimeout(wordTimeoutRef.current);
+      wordTimeoutRef.current = null;
+    }
+  }, [activeGame]);
 
   const generateMathQuestion = () => {
     const num1 = Math.floor(Math.random() * 50) + 10;
@@ -766,7 +776,14 @@ const BrainGames = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Word Recall Challenge</span>
-              <Button variant="outline" onClick={() => { setActiveGame(null); showInfo("Word Game Exited", "Keep practicing your memory!"); }}>Exit Game</Button>
+              <Button variant="outline" onClick={() => {
+          if (wordTimeoutRef.current) {
+            clearTimeout(wordTimeoutRef.current);
+            wordTimeoutRef.current = null;
+          }
+          setActiveGame(null);
+          showInfo("Word Game Exited", "Keep practicing your memory!");
+        }}>Exit Game</Button>
             </CardTitle>
             <CardDescription>Memorize the words, then recall them in order</CardDescription>
           </CardHeader>

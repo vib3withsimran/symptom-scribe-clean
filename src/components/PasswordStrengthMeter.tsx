@@ -57,7 +57,7 @@ export function PasswordStrengthMeter({
   return (
     <div className="space-y-3">
       {/* Label */}
-      <Label htmlFor={id} className="text-sm font-medium">
+      <Label htmlFor={id} className="text-sm font-medium text-foreground">
         {label} {required && <span className="text-red-500">*</span>}
       </Label>
 
@@ -69,14 +69,14 @@ export function PasswordStrengthMeter({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="pr-20"
+          className="h-12 rounded-2xl pr-20 transition-all duration-200 placeholder:text-muted-foreground hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/30"
           required={required}
           autoComplete="new-password"
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -87,14 +87,14 @@ export function PasswordStrengthMeter({
       {value && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-600">Strength</span>
+            <span className="text-xs font-medium text-muted-foreground">Strength</span>
             <span className={`text-xs font-semibold ${
               strength.score >= 4 ? "text-green-600" : "text-orange-600"
             }`}>
               {getStrengthLabel(strength.score)}
             </span>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <div
               className={`h-full transition-all duration-300 ${getStrengthColor(strength.score)}`}
               style={{ width: `${(strength.score / 5) * 100}%` }}
@@ -111,7 +111,7 @@ export function PasswordStrengthMeter({
       {/* Requirements Checklist */}
       {value && requirements.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-600">Requirements:</p>
+          <p className="text-xs font-medium text-muted-foreground">Requirements:</p>
           <ul className="space-y-1" role="list">
             {requirements.map((req) => {
               const isMet = req.test(value);
@@ -119,16 +119,18 @@ export function PasswordStrengthMeter({
                 <li
                   key={req.id}
                   className={`flex items-center gap-2 text-xs ${
-                    isMet ? "text-green-600" : "text-gray-500"
+                    isMet ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
                   }`}
                   role="listitem"
                 >
                   <span
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                      isMet ? "bg-green-600" : "bg-gray-300"
+                      isMet ? "bg-green-600 dark:bg-green-500" : "bg-muted"
                     }`}
+                    aria-label={isMet ? "Requirement met" : "Requirement unmet"}
+                    role="img"
                   >
-                    {isMet && <Check size={12} className="text-white" />}
+                    {isMet && <Check size={12} className="text-white" aria-hidden="true" />}
                   </span>
                   <span>{req.label}</span>
                 </li>
@@ -140,7 +142,7 @@ export function PasswordStrengthMeter({
 
       {/* Error Message */}
       {value && !strength.isStrong && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
           Password does not meet all requirements
         </p>
       )}
@@ -153,7 +155,7 @@ export function PasswordStrengthMeter({
             variant="outline"
             size="sm"
             onClick={handleGeneratePassword}
-            className="flex-1 gap-2"
+            className="flex-1 gap-2 rounded-xl border-border/70 bg-background/70 transition-all duration-200 hover:border-primary/50 hover:bg-primary/10"
           >
             <Zap size={16} />
             Generate Strong Password
@@ -164,7 +166,7 @@ export function PasswordStrengthMeter({
               variant="outline"
               size="sm"
               onClick={handleCopyGenerated}
-              className="w-auto"
+              className="w-auto rounded-xl border-border/70 bg-background/70 transition-all duration-200 hover:border-primary/50 hover:bg-primary/10"
               aria-label="Copy generated password"
             >
               {copiedGenerator ? (

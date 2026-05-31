@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import {
   Phone, AlertTriangle, MapPin, ExternalLink,
@@ -245,28 +246,6 @@ const Emergency = () => {
     return null;
   };
 
-  // ── Refs for each section ──────────────────────────────────────────────────
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-
-
-
-
-  // ── Highlight active nav item as user scrolls ──────────────────────────────
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { threshold: 0.4 }
-    );
-    Object.values(sectionRefs.current).forEach((el) => {
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
 
   // ── Beep sound using Web Audio API ────────────────────────────────────────
   const playBeep = () => {
@@ -284,13 +263,6 @@ const Emergency = () => {
       oscillator.stop(ctx.currentTime + 0.4);
     } catch (_) {}
   };
-
-  // ── Smooth scroll to section ───────────────────────────────────────────────
-  const scrollToSection = (id: string) => {
-    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-
 
   // ── Filtered numbers ───────────────────────────────────────────────────────
   const localMatch = getDetectedCountryMatch();
@@ -438,12 +410,19 @@ const Emergency = () => {
         </div>
       </details>
 
-      {/* ── Sticky Anchor Nav Bar ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border border-border rounded-xl p-1 flex gap-1">
+      {/* ── Sticky Tab Bar ────────────────────────────────────────────────── */}
+      <div
+        role="tablist"
+        aria-label="Emergency resource sections"
+        className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border border-border rounded-xl p-1 flex gap-1"
+      >
         {navItems.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => scrollToSection(id)}
+            role="tab"
+            aria-selected={activeSection === id}
+            aria-controls={`panel-${id}`}
+            onClick={() => setActiveSection(id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium flex-1 justify-center transition-all duration-150
               ${activeSection === id
                 ? "bg-destructive text-white shadow-sm"
@@ -456,12 +435,21 @@ const Emergency = () => {
         ))}
       </div>
 
+      {/* ── Active Section Panel ──────────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSection}
+          id={`panel-${activeSection}`}
+          role="tabpanel"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+        >
+
       {/* ══ SECTION 1 — Emergency Numbers ════════════════════════════════════ */}
-      <div
-        id="numbers"
-        ref={(el) => { sectionRefs.current["numbers"] = el; }}
-        className="space-y-4 scroll-mt-20"
-      >
+      {activeSection === "numbers" && (
+      <div className="space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Phone className="w-5 h-5 text-destructive" />
           <h2 className="text-xl font-bold text-foreground">Emergency Numbers</h2>
@@ -568,13 +556,11 @@ const Emergency = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* ══ SECTION 2 — First Aid ══════════════════════════════════════════════ */}
-      <div
-        id="firstaid"
-        ref={(el) => { sectionRefs.current["firstaid"] = el; }}
-        className="space-y-3 scroll-mt-20"
-      >
+      {activeSection === "firstaid" && (
+      <div className="space-y-3">
         <div className="flex items-center gap-2 mb-1">
           <Activity className="w-5 h-5 text-destructive" />
           <h2 className="text-xl font-bold text-foreground">First Aid Guides</h2>
@@ -689,13 +675,11 @@ const Emergency = () => {
           );
         })}
       </div>
+      )}
 
       {/* ══ SECTION 3 — Crisis Hotlines ══════════════════════════════════════ */}
-      <div
-        id="crisis"
-        ref={(el) => { sectionRefs.current["crisis"] = el; }}
-        className="space-y-3 scroll-mt-20"
-      >
+      {activeSection === "crisis" && (
+      <div className="space-y-3">
         <div className="flex items-center gap-2 mb-1">
           <Heart className="w-5 h-5 text-destructive" />
           <h2 className="text-xl font-bold text-foreground">Crisis & Mental Health Hotlines</h2>
@@ -796,12 +780,11 @@ const Emergency = () => {
         </div>
       </div>
 
+      )}
+
       {/* ══ SECTION 4 — Find Help ═════════════════════════════════════════════ */}
-      <div
-        id="find"
-        ref={(el) => { sectionRefs.current["find"] = el; }}
-        className="space-y-3 scroll-mt-20"
-      >
+      {activeSection === "find" && (
+      <div className="space-y-3">
         <div className="flex items-center gap-2 mb-1">
           <MapPin className="w-5 h-5 text-destructive" />
           <h2 className="text-xl font-bold text-foreground">Find Nearby Help</h2>
@@ -880,8 +863,10 @@ const Emergency = () => {
           </div>
         </div>
       </div>
+      )}
 
-
+        </motion.div>
+      </AnimatePresence>
 
     </div>
   );

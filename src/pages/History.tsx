@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, X, Trash2, Eye } from "lucide-react";
+import { CheckCircle, X, Trash2, Eye, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { showSuccess, showError } from "@/lib/toast-helpers";
 import {
@@ -32,6 +32,8 @@ interface SymptomEntry {
 const History = () => {
   const [history, setHistory] = useState<SymptomEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [severityFilter, setSeverityFilter] = useState("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,6 +119,29 @@ const History = () => {
         </div>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search symptoms..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <select
+          value={severityFilter}
+          onChange={(e) => setSeverityFilter(e.target.value)}
+          className="px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="all">All Severities</option>
+          <option value="low">Low</option>
+          <option value="moderate">Moderate</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
       {loading ? (
         <p className="text-center text-muted-foreground">Loading history...</p>
       ) : history.length === 0 ? (
@@ -129,7 +154,12 @@ const History = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {history.map((entry) => (
+          {history
+            .filter((entry) =>
+              entry.symptoms.toLowerCase().includes(searchQuery.toLowerCase()) &&
+              (severityFilter === "all" || entry.severity_level === severityFilter)
+            )
+            .map((entry) => (
             <Card key={entry.id} className={entry.resolved ? "opacity-70" : ""}>
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-2">

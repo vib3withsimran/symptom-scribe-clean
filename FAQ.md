@@ -65,18 +65,20 @@ npm install
 
 **3. Set up environment variables**
 
-Copy the `.env` file and fill in your Supabase credentials:
+Copy the example env file and fill in your Supabase credentials:
 
 ```bash
-cp .env .env.local
+cp .env.example .env.local
 ```
 
 Add the following variables:
 
 ```
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 ```
+
+If you are still migrating older local setups, `VITE_SUPABASE_ANON_KEY` is accepted as a fallback, but it should be replaced with the publishable key.
 
 **4. Start the development server**
 
@@ -198,13 +200,14 @@ npm install
 
 ### The dev server doesn't start or shows a blank page
 
-- Make sure you've set up the `.env` file with valid Supabase credentials
+- Make sure you've set up `.env.local` with valid Supabase credentials
+- Check the startup diagnostics screen for any missing required variables
 - Check that you're running on the correct port: `http://localhost:8080`
 - Try stopping and restarting with `npm run dev`
 
 ### Supabase connection errors
 
-- Double-check your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the `.env` file
+- Double-check your `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local`
 - Make sure your Supabase project is active and not paused
 
 ### TypeScript errors after pulling latest changes

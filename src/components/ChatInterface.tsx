@@ -5,6 +5,7 @@ import { Send, Loader2 } from "lucide-react";
 import ChatMessage from "./ChatMessage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { browserEnv } from "@/lib/env";
 import { showSuccess, showError, showInfo, showLoading } from "@/lib/toast-helpers";
 
 interface Message {
@@ -64,17 +65,14 @@ const ChatInterface = () => {
       );
       const recentContext = conversationHistory.slice(-6);
 
-      const response = await fetch(
-       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/symptom-analyzer`,
-      {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ messages: [...recentContext, userMessage] }),
-    }
-  );
+      const response = await fetch(browserEnv.getSupabaseFunctionUrl("symptom-analyzer"), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${browserEnv.supabasePublishableKey}`,
+        },
+        body: JSON.stringify({ messages: [...recentContext, userMessage] }),
+      });
 
       if (!response.ok || !response.body) {
         throw new Error('Failed to start stream');
@@ -137,7 +135,7 @@ const ChatInterface = () => {
               currentSection = 'causes';
             } else if (/severity\s+level/i.test(trimmedLine)) {
               currentSection = 'severity';
-              const severityMatch = trimmedLine.match(/severity\s+level\s*:\s*[*_#`\[]*\s*(low|moderate|high)/i);
+              const severityMatch = trimmedLine.match(/severity\s+level\s*:\s*[*_#`[]*\s*(low|moderate|high)/i);
               if (severityMatch) {
                 severityLevel = severityMatch[1].toLowerCase();
                 // Show severity info toast

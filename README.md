@@ -63,6 +63,21 @@
    ```
 4. Open in your browser → [http://localhost:8080](http://localhost:8080)
 
+### Environment configuration
+
+Create a local env file before starting the app:
+
+```bash
+cp .env.example .env.local
+```
+
+Required frontend variables:
+
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_PUBLISHABLE_KEY
+
+Legacy support is available for VITE_SUPABASE_ANON_KEY, but it should be treated as a temporary fallback only.
+
 ---
 
 ## 🧩 Folder Structure

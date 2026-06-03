@@ -6,20 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,27 +29,14 @@ import { z } from "zod";
 
 import { showSuccess, showError } from "@/lib/toast-helpers";
 
-import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
-
-import {
-  evaluatePasswordStrength,
-  DEFAULT_PASSWORD_POLICY,
-} from "@/lib/password-strength";
+import MultiStepSignUp from "@/components/registration/MultiStepSignUp";
 
 const emailSchema = z.string().email("Invalid email address");
 const signinPasswordSchema = z.string().min(1, "Password is required");
-const signupPasswordSchema = z
-  .string()
-  .min(12, "Password must be at least 12 characters");
 
 const Auth = () => {
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
-
-  const [signUpEmail, setSignUpEmail] = useState("");
-  const [signUpPassword, setSignUpPassword] = useState("");
-
-  const [fullName, setFullName] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -110,44 +86,6 @@ const Auth = () => {
     }
   };
 
-  const validateSignUp = () => {
-    try {
-      emailSchema.parse(signUpEmail);
-      signupPasswordSchema.parse(signUpPassword);
-
-      const strength = evaluatePasswordStrength(
-        signUpPassword,
-        DEFAULT_PASSWORD_POLICY
-      );
-
-      if (!strength.isStrong) {
-        throw new Error("Password does not meet strength requirements.");
-      }
-
-      if (!fullName.trim()) {
-        throw new Error("Full name is required");
-      }
-
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else if (error instanceof Error) {
-        toast({
-          title: "Validation Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-
-      return false;
-    }
-  };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -169,36 +107,6 @@ const Auth = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateSignUp()) return;
-
-    setLoading(true);
-
-    const redirectUrl = `${window.location.origin}/dashboard`;
-
-    const { data, error } = await supabase.auth.signUp({
-      email: signUpEmail,
-      password: signUpPassword,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { full_name: fullName },
-      },
-    });
-
-    if (error) {
-      showError("Sign Up Failed", error.message);
-    } else {
-      showSuccess(
-        "Account Created!",
-        "You can now sign in with your credentials."
-      );
-    }
-
-    setLoading(false);
-  };
-
   return (
     <div className="dark relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_left,rgba(20,184,166,0.22),transparent_38%),linear-gradient(135deg,#07111f_0%,#0f2433_45%,#12362f_100%)] px-4 py-8 text-white sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-50" />
@@ -218,26 +126,22 @@ const Auth = () => {
               Care insights that feel calm, clear, and secure.
             </h1>
             <p className="max-w-lg text-lg leading-8 text-slate-300">
-              Track symptoms, health patterns, and personalized guidance from a
-              focused workspace built for everyday care decisions.
+              Track symptoms, health patterns, and personalized guidance from a focused workspace
+              built for everyday care decisions.
             </p>
           </div>
 
           <div className="grid max-w-lg grid-cols-2 gap-4">
             <div className="rounded-2xl border border-white/10 bg-white/8 p-4 shadow-xl shadow-slate-950/20 backdrop-blur-xl">
               <HeartPulse className="mb-4 h-7 w-7 text-rose-200" />
-              <p className="text-sm font-semibold text-white">
-                Smart symptom history
-              </p>
+              <p className="text-sm font-semibold text-white">Smart symptom history</p>
               <p className="mt-1 text-sm leading-6 text-slate-300">
                 Organized health records with trend-aware summaries.
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/8 p-4 shadow-xl shadow-slate-950/20 backdrop-blur-xl">
               <ShieldCheck className="mb-4 h-7 w-7 text-emerald-200" />
-              <p className="text-sm font-semibold text-white">
-                Private by design
-              </p>
+              <p className="text-sm font-semibold text-white">Private by design</p>
               <p className="mt-1 text-sm leading-6 text-slate-300">
                 A secure entry point with accessible contrast and focus states.
               </p>
@@ -290,10 +194,7 @@ const Auth = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-5">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="signin-email"
-                      className="text-sm font-medium text-slate-100"
-                    >
+                    <Label htmlFor="signin-email" className="text-sm font-medium text-slate-100">
                       Email
                     </Label>
 
@@ -313,10 +214,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="signin-password"
-                      className="text-sm font-medium text-slate-100"
-                    >
+                    <Label htmlFor="signin-password" className="text-sm font-medium text-slate-100">
                       Password
                     </Label>
 
@@ -336,15 +234,9 @@ const Auth = () => {
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
-                        {showPassword ? (
-                          <EyeOff size={20} />
-                        ) : (
-                          <Eye size={20} />
-                        )}
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
@@ -372,80 +264,7 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="signup-name"
-                      className="text-sm font-medium text-slate-100"
-                    >
-                      Full Name
-                    </Label>
-
-                    <div className="relative">
-                      <User className={fieldIconClass} />
-
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="John Doe"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required
-                        className={fieldClass}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="signup-email"
-                      className="text-sm font-medium text-slate-100"
-                    >
-                      Email
-                    </Label>
-
-                    <div className="relative">
-                      <Mail className={fieldIconClass} />
-
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={signUpEmail}
-                        onChange={(e) => setSignUpEmail(e.target.value)}
-                        required
-                        className={fieldClass}
-                      />
-                    </div>
-                  </div>
-
-                  <PasswordStrengthMeter
-                    value={signUpPassword}
-                    onChange={setSignUpPassword}
-                    label="Password"
-                    placeholder="Create a strong password"
-                    policy={DEFAULT_PASSWORD_POLICY}
-                    showGenerator={true}
-                    id="signup-password"
-                    showPasswordState={showPassword}
-                    onShowPasswordChange={setShowPassword}
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className={actionButtonClass}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
-                      </>
-                    ) : (
-                      "Create Account"
-                    )}
-                  </Button>
-                </form>
+                <MultiStepSignUp />
               </TabsContent>
             </Tabs>
           </CardContent>

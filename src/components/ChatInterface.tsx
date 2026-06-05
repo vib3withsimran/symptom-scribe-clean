@@ -162,6 +162,13 @@ const ChatInterface = () => {
             : severityLevel === 'moderate' ? Math.floor(Math.random() * 30) + 40 
             : Math.floor(Math.random() * 30) + 10;
 
+            const isMedicalAnalysis =
+  assistantContent.includes("Possible Causes") ||
+  assistantContent.includes("Severity Level");
+
+if (!isMedicalAnalysis) {
+  return;
+}
           const { error: insertError } = await supabase.from("symptom_history").insert({
             user_id: user.id,
             symptoms: userMessage.content,

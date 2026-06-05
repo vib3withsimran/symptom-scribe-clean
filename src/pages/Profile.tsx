@@ -159,26 +159,10 @@ if (!profile.blood_type) {
 
       console.log("Saving profile data:", profileData);
 
-      // First check if profile exists
-      const { data: existingProfile } = await supabase
+      // Upsert the profile data targeting the unique user_id constraint
+      const result = await supabase
         .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        result = await supabase
-          .from("profiles")
-          .update(profileData)
-          .eq("user_id", user.id);
-      } else {
-        // Insert new profile
-        result = await supabase
-          .from("profiles")
-          .insert([profileData]);
-      }
+        .upsert(profileData, { onConflict: "user_id" });
 
       if (result.error) {
         console.error("Supabase error:", result.error);

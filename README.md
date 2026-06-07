@@ -24,7 +24,7 @@
 
 ### 💡 Health Facts
 
-* “Did You Know?” pop-ups with fascinating human body facts and medical trivia.
+- "Did You Know?" pop-ups with fascinating human body facts and medical trivia.
 
 ### 👨‍⚕️ Doctor Consultation
 

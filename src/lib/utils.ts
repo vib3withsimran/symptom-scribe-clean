@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const secureRandomIndex = (limit: number): number => {
   const array = new Uint32Array(1);
-  window.crypto.getRandomValues(array);
+  globalThis.crypto.getRandomValues(array);
   return array[0] % limit;
 };
 /**

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Activity, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
 import { showError, showInfo } from "@/lib/toast-helpers";
 import CountUp from "react-countup";
+import CardSkeleton from "@/components/ui/CardSkeleton";
 
 interface Stats {
   totalSymptoms: number;
@@ -46,7 +48,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Fetch ALL symptom history for this user
       const { data: symptoms, error } = await supabase
         .from("symptom_history")
         .select("*")
@@ -62,7 +63,6 @@ const Dashboard = () => {
         const unresolved = symptoms.filter(s => !s.resolved).length;
         const avgRisk = symptoms.reduce((sum, s) => sum + (s.risk_score || 0), 0) / symptoms.length;
 
-        // Get recent activity (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const recent = symptoms.filter(s => new Date(s.created_at) > sevenDaysAgo).length;
@@ -83,7 +83,6 @@ const Dashboard = () => {
           recentActivity: 0,
         });
         setRecentHistory([]);
-
         showInfo("Welcome!", "Start by consulting with the AI Assistant");
       }
     } catch (error) {
@@ -104,6 +103,28 @@ const Dashboard = () => {
         return "text-green-500";
     }
   };
+
+  // FIX: Show CardSkeleton while data loads instead of blank screen
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-9 w-52 rounded mb-2" />
+          <Skeleton className="h-4 w-72 rounded" />
+        </div>
+        <CardSkeleton count={4} variant="stat" />
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-44 rounded mb-1" />
+            <Skeleton className="h-4 w-60 rounded" />
+          </CardHeader>
+          <CardContent>
+            <CardSkeleton count={3} variant="row" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

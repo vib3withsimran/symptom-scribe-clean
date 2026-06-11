@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, X, Trash2, Eye, Search } from "lucide-react";
+import { CheckCircle, X, Trash2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { showSuccess, showError } from "@/lib/toast-helpers";
 import { db, syncOfflineData } from "@/lib/offline-db";
@@ -36,25 +36,25 @@ const History = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const { toast } = useToast();
-  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true
+  );
 
   useEffect(() => {
     fetchHistory();
 
+    // FIX #2: This component owns exactly one "online" listener.
+    // The duplicate global listener in offline-db.ts has been removed,
+    // so sync now fires exactly once per reconnect event.
     const handleOnline = async () => {
       setIsOnline(true);
       const synced = await syncOfflineData();
-      if (synced) {
-        fetchHistory();
-      }
+      if (synced) fetchHistory();
     };
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
@@ -76,18 +76,20 @@ const History = () => {
         if (error) throw error;
 
         if (data) {
-          // Sync with local Dexie store
-          // First, delete non-pending records in Dexie to avoid stales
           await db.symptomHistory
             .where("user_id")
             .equals(user.id)
-            .filter((record) => record.pending_sync === 0 && record.pending_delete === 0 && record.pending_update === 0)
+            .filter(
+              (record) =>
+                record.pending_sync === 0 &&
+                record.pending_delete === 0 &&
+                record.pending_update === 0
+            )
             .delete();
 
-          // Bulk add the new ones
           const localEntries = data.map((record: SymptomEntry) => ({
             id: record.id,
-            user_id: record.user_id,
+            user_id: (record as any).user_id,
             symptoms: record.symptoms,
             severity_level: record.severity_level,
             possible_causes: record.possible_causes,
@@ -99,7 +101,7 @@ const History = () => {
             pending_update: 0,
             pending_delete: 0,
           }));
-          
+
           await db.symptomHistory.bulkPut(localEntries);
         }
       }
@@ -107,7 +109,6 @@ const History = () => {
       console.warn("Error fetching history from Supabase, falling back to local DB:", error);
     }
 
-    // Load from local Dexie database for the UI (both online & offline)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -117,7 +118,6 @@ const History = () => {
           .filter((record) => record.pending_delete === 0)
           .toArray();
 
-        // Sort by created_at desc
         localRecords.sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
@@ -141,11 +141,8 @@ const History = () => {
           .eq("id", id);
 
         if (error) throw error;
-
-        // Update local Dexie record
         await db.symptomHistory.update(id, { resolved: newStatus, pending_update: 0 });
       } else {
-        // Offline mode: save locally and mark as pending_update
         await db.symptomHistory.update(id, { resolved: newStatus, pending_update: 1 });
       }
 
@@ -154,17 +151,12 @@ const History = () => {
         description: newStatus ? "Marked as resolved" : "Marked as unresolved",
       });
 
-      // Update state immediately
       setHistory((prev) =>
         prev.map((entry) => (entry.id === id ? { ...entry, resolved: newStatus } : entry))
       );
     } catch (error) {
       console.error("Error updating status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update status",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
     }
   };
 
@@ -177,15 +169,12 @@ const History = () => {
           .eq("id", id);
 
         if (error) throw error;
-        
         await db.symptomHistory.delete(id);
       } else {
-        // Offline mode: mark for pending delete
         await db.symptomHistory.update(id, { pending_delete: 1 });
       }
 
       showSuccess("Record deleted", "The symptom history has been permanently removed.");
-      // Update state immediately
       setHistory((prev) => prev.filter((entry) => entry.id !== id));
     } catch (error) {
       console.error("Error deleting history:", error);
@@ -193,7 +182,7 @@ const History = () => {
     }
   };
 
- const exportCSV = () => {
+  const exportCSV = () => {
     const headers = ["Date", "Symptoms", "Severity", "Risk Score", "Resolved"];
     const rows = history.map((entry) => [
       new Date(entry.created_at).toLocaleDateString(),
@@ -212,7 +201,6 @@ const History = () => {
     URL.revokeObjectURL(url);
   };
 
-
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high": return "destructive";
@@ -220,18 +208,16 @@ const History = () => {
       default: return "secondary";
     }
   };
-  const getSeverityBorder = (severity: string) => {
-  switch (severity?.toLowerCase()) {
-    case "low":
-      return "border-l-4 border-l-green-500";
-    case "moderate":
-      return "border-l-4 border-l-yellow-500";
-    case "high":
-      return "border-l-4 border-l-red-500";
-    default:
-      return "";
-  }
-};
+
+  // FIX #3: Derive filteredHistory BEFORE render so we can show the correct
+  // empty state when search/filter produces zero results (vs. genuinely no data).
+  const filteredHistory = history.filter(
+    (entry) =>
+      entry.symptoms.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (severityFilter === "all" || entry.severity_level === severityFilter)
+  );
+
+  const isFiltering = searchQuery.trim() !== "" || severityFilter !== "all";
 
   return (
     <div className="space-y-6">
@@ -281,6 +267,7 @@ const History = () => {
       {loading ? (
         <p className="text-center text-muted-foreground">Loading history...</p>
       ) : history.length === 0 ? (
+        // FIX #3: Genuinely no data at all
         <Card>
           <CardContent className="pt-6 text-center space-y-2">
             <p className="text-muted-foreground">
@@ -288,25 +275,37 @@ const History = () => {
             </p>
           </CardContent>
         </Card>
+      ) : filteredHistory.length === 0 ? (
+        // FIX #3: Data exists but filters returned nothing — different message
+        <Card>
+          <CardContent className="pt-6 text-center space-y-2">
+            <p className="text-muted-foreground">
+              No results match your search{isFiltering ? " or filter" : ""}. Try adjusting your criteria.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setSearchQuery(""); setSeverityFilter("all"); }}
+            >
+              Clear filters
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
+        // FIX #3: Render filteredHistory, not history
         <div className="space-y-4">
-          {visibleHistory.map((entry) => (
-           <Card
-  key={entry.id}
-  className={`${getSeverityBorder(entry.severity_level)} ${
-    entry.resolved ? "opacity-70" : ""
-  }`}
->
+          {filteredHistory.map((entry) => (
+            <Card key={entry.id} className={entry.resolved ? "opacity-70" : ""}>
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg break-words">{entry.symptoms}</CardTitle>
-                    <CardDescription>
+                    <p className="text-sm text-muted-foreground">
                       {new Date(entry.created_at).toLocaleString()}
-                    </CardDescription>
+                    </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <Badge variant={getSeverityColor(entry.severity_level)}>
+                    <Badge variant={getSeverityColor(entry.severity_level) as any}>
                       {entry.severity_level}
                     </Badge>
                     <Button
@@ -335,7 +334,8 @@ const History = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Symptom History?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to permanently delete this health consultation record? This action cannot be undone.
+                            Are you sure you want to permanently delete this health consultation
+                            record? This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

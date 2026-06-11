@@ -2,7 +2,6 @@ import Dexie, { type Table } from "dexie";
 import { supabase } from "@/integrations/supabase/client";
 import { type Json } from "@/integrations/supabase/types";
 
-// Define TypeScript interfaces matching database schemas with sync flags
 export interface OfflineMetric {
   id: string;
   user_id: string;
@@ -10,8 +9,8 @@ export interface OfflineMetric {
   value: Json;
   notes: string | null;
   recorded_at: string;
-  pending_sync: number; // 0 = synced, 1 = pending
-  pending_delete: number; // 0 = no, 1 = pending
+  pending_sync: number;
+  pending_delete: number;
 }
 
 export interface OfflineSymptom {
@@ -24,9 +23,9 @@ export interface OfflineSymptom {
   risk_score: number | null;
   resolved: boolean;
   created_at: string;
-  pending_sync: number; // 0 = synced, 1 = pending
-  pending_update: number; // 0 = no, 1 = pending
-  pending_delete: number; // 0 = no, 1 = pending
+  pending_sync: number;
+  pending_update: number;
+  pending_delete: number;
 }
 
 class OfflineDatabase extends Dexie {
@@ -44,7 +43,6 @@ class OfflineDatabase extends Dexie {
 
 export const db = new OfflineDatabase();
 
-// Centralized Synchronization Engine
 export const syncOfflineData = async (): Promise<boolean> => {
   if (!navigator.onLine) return false;
 
@@ -126,7 +124,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
       }
     }
 
-    // 5. Sync pending symptom history updates (e.g. resolve/reopen status)
+    // 5. Sync pending symptom history updates (resolve/reopen)
     const pendingSymptomUpdates = await db.symptomHistory
       .where("pending_update")
       .equals(1)
@@ -151,10 +149,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
   }
 };
 
-// Automatic listener for online connection
-if (typeof window !== "undefined") {
-  window.addEventListener("online", () => {
-    console.log("Browser came online. Triggering offline sync...");
-    syncOfflineData();
-  });
-}
+// FIX #2: Removed the global window.addEventListener("online", syncOfflineData) that
+// was here previously. It caused syncOfflineData to fire 3× on every reconnect because
+// History.tsx and Metrics.tsx each add their own "online" listener too.
+// The page-level components are the single source of truth for triggering sync.

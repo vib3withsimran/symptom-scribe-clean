@@ -28,6 +28,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  ArrowUpDown,
 } from "lucide-react";
 import { showSuccess, showError } from "@/lib/toast-helpers";
 import { useMetricsHistory } from "@/hooks/useMetricsHistory";
@@ -96,12 +97,12 @@ const Metrics = () => {
   const chartRef = useRef<HTMLDivElement>(null);
   const downloadChart = async () => {
     if (!chartRef.current) return;
-  const dataUrl = await toPng(chartRef.current);
-  const link = document.createElement("a");
-  link.download = "health-metric-chart.png";
-  link.href = dataUrl;
-  link.click();
-};
+    const dataUrl = await toPng(chartRef.current);
+    const link = document.createElement("a");
+    link.download = "health-metric-chart.png";
+    link.href = dataUrl;
+    link.click();
+  };
   const [metricType, setMetricType] = useState("");
   const [value, setValue] = useState("");
   const [systolic, setSystolic] = useState("");
@@ -116,7 +117,10 @@ const Metrics = () => {
     loading: historyLoading,
     refresh,
     deleteRecord,
+    setSortOrder,
+    sortOrder,
   } = useMetricsHistory(historyUserId);
+  
   useEffect(() => {
     const fetchUser = async () => {
       const {
@@ -157,6 +161,7 @@ const Metrics = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [refresh]);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -171,7 +176,7 @@ const Metrics = () => {
         return;
       }
     }
-    if (metricType==="tempreature"){
+    if (metricType==="temperature"){
       const temp = Number(value);
       if (temp < 86 || temp > 113) {
         alert("Temperature must be between 86°F and 113°F");
@@ -216,7 +221,6 @@ const Metrics = () => {
     setLoading(true);
     try {
       const {
-
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -252,7 +256,6 @@ const Metrics = () => {
 
         await invalidateCache("health_metrics");
 
-        // Cache locally
         await db.healthMetrics.put({
           id: recordId,
           user_id: user.id,
@@ -269,7 +272,6 @@ const Metrics = () => {
           "Your health metric has been saved successfully.",
         );
       } else {
-        // Save offline in local database
         await db.healthMetrics.put({
           id: recordId,
           user_id: user.id,
@@ -287,13 +289,11 @@ const Metrics = () => {
         );
       }
 
-      // Reset form
       setValue("");
       setSystolic("");
       setDiastolic("");
       setNotes("");
 
-      // Refresh history
       refresh();
     } catch (error) {
       console.error("Error saving metric:", error);
@@ -302,6 +302,7 @@ const Metrics = () => {
       setLoading(false);
     }
   };
+  
   const formatMetricValue = (record: OfflineMetric) => {
     const recordValue = record.value as { value?: number; systolic?: number; diastolic?: number } | null;
     if (record.metric_type === "blood_pressure") {
@@ -312,6 +313,7 @@ const Metrics = () => {
 
     return `${recordValue?.value} ${metric?.unit || ""}`;
   };
+  
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString([], {
       year: "numeric",
@@ -321,6 +323,7 @@ const Metrics = () => {
       minute: "2-digit",
     });
   };
+  
   const filteredRecords = records.filter((record: OfflineMetric) => {
     const metricMatch =
       historyMetricFilter === "all" ||
@@ -341,6 +344,7 @@ const Metrics = () => {
 
     return metricMatch && diffDays <= days;
   });
+  
   const isBloodPressure = historyMetricFilter === "blood_pressure";
 
   return (
@@ -467,18 +471,20 @@ const Metrics = () => {
           </form>
         </CardContent>
       </Card>
+      
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-          <CardTitle>Metrics History</CardTitle>
-          <CardDescription>
-            Your previously recorded health metrics
-          </CardDescription>
+            <CardTitle>Metrics History</CardTitle>
+            <CardDescription>
+              Your previously recorded health metrics
+            </CardDescription>
           </div>
-          {historyView==="chart"&&(
-          <Button onClick={downloadChart}>
-          Download Chart
-          </Button>)}
+          {historyView === "chart" && (
+            <Button onClick={downloadChart}>
+              Download Chart
+            </Button>
+          )}
         </CardHeader>
 
         <CardContent>
@@ -489,25 +495,22 @@ const Metrics = () => {
           ) : records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <p className="text-lg font-medium">No health metrics yet</p>
-
               <p className="text-sm text-muted-foreground mt-1">
                 Record your first measurement above to start tracking trends.
               </p>
             </div>
           ) : (
             <>
-              <div className="mb-4">
+              <div className="flex flex-wrap gap-3 mb-4">
                 <Select
                   value={historyMetricFilter}
                   onValueChange={setHistoryMetricFilter}
                 >
-                  <SelectTrigger className="w-[220px]">
+                  <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter metric" />
                   </SelectTrigger>
-
                   <SelectContent>
                     <SelectItem value="all">All Metrics</SelectItem>
-
                     {metricTypes.map((metric) => (
                       <SelectItem key={metric.value} value={metric.value}>
                         {metric.label}
@@ -515,23 +518,42 @@ const Metrics = () => {
                     ))}
                   </SelectContent>
                 </Select>
+
                 <Select
                   value={timeframeFilter}
                   onValueChange={setTimeframeFilter}
                 >
-                  <SelectTrigger className="w-[220px] mt-3">
+                  <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select timeframe" />
                   </SelectTrigger>
-
                   <SelectContent>
                     <SelectItem value="7">Last 7 Days</SelectItem>
-
                     <SelectItem value="30">Last 30 Days</SelectItem>
-
                     <SelectItem value="all">All Time</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* SORT TOGGLE BUTTONS - NEW CODE ADDED HERE */}
+                <div className="flex gap-2 ml-auto">
+                  <Button
+                    variant={sortOrder === "newest" ? "default" : "outline"}
+                    onClick={() => setSortOrder("newest")}
+                    className="gap-2"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                    Newest First
+                  </Button>
+                  <Button
+                    variant={sortOrder === "oldest" ? "default" : "outline"}
+                    onClick={() => setSortOrder("oldest")}
+                    className="gap-2"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                    Oldest First
+                  </Button>
+                </div>
               </div>
+
               <div className="flex gap-2 mb-4">
                 <Button
                   variant={historyView === "table" ? "default" : "outline"}
@@ -539,7 +561,6 @@ const Metrics = () => {
                 >
                   Table
                 </Button>
-
                 <Button
                   variant={historyView === "chart" ? "default" : "outline"}
                   onClick={() => setHistoryView("chart")}
@@ -547,6 +568,7 @@ const Metrics = () => {
                   Chart
                 </Button>
               </div>
+
               {historyView === "table" && (
                 <div className="rounded-xl border overflow-x-auto">
                   <Table>
@@ -559,14 +581,12 @@ const Metrics = () => {
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-
                     <TableBody>
                       {filteredRecords.map((record: OfflineMetric) => (
                         <TableRow key={record.id}>
                           <TableCell>
                             {formatDate(record.recorded_at)}
                           </TableCell>
-
                           <TableCell>
                             {
                               metricTypes.find(
@@ -574,9 +594,7 @@ const Metrics = () => {
                               )?.label
                             }
                           </TableCell>
-
                           <TableCell>{formatMetricValue(record)}</TableCell>
-
                           <TableCell>{record.notes || "-"}</TableCell>
                           <TableCell>
                             <AlertDialog>
@@ -585,23 +603,19 @@ const Metrics = () => {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
-
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
                                     Delete Record?
                                   </AlertDialogTitle>
-
                                   <AlertDialogDescription>
                                     This action cannot be undone. The selected
                                     health metric record will be permanently
                                     removed.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
-
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-
                                   <AlertDialogAction
                                     onClick={() => deleteRecord(record.id)}
                                   >
@@ -617,6 +631,7 @@ const Metrics = () => {
                   </Table>
                 </div>
               )}
+
               {historyView === "chart" &&
                 (historyMetricFilter === "all" ? (
                   <div className="flex flex-col items-center justify-center h-[400px] w-full rounded-xl border border-dashed p-8 text-center bg-muted/20">
@@ -631,7 +646,6 @@ const Metrics = () => {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={filteredRecords}>
                         <CartesianGrid strokeDasharray="3 3" />
-
                         <XAxis
                           dataKey="recorded_at"
                           tickFormatter={(value) =>
@@ -643,11 +657,8 @@ const Metrics = () => {
                             })
                           }
                         />
-
                         <YAxis />
-
                         <Tooltip labelFormatter={(value) => formatDate(value)} />
-
                         {isBloodPressure ? (
                           <>
                             <Line
@@ -657,7 +668,6 @@ const Metrics = () => {
                               strokeWidth={3}
                               dot={{ r: 4 }}
                             />
-
                             <Line
                               type="monotone"
                               dataKey="value.diastolic"

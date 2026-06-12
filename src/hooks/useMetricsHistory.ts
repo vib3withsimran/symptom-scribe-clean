@@ -1,17 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { db, type OfflineMetric } from "@/lib/offline-db";
-
-
 import { getCachedData, invalidateCache } from "@/lib/cached-queries";
 
 export function useMetricsHistory(userId: string | null) {
   const [records, setRecords] = useState<OfflineMetric[]>([]);
-
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const fetchHistory = useCallback(async () => {
-    // never query with an empty/null userId.
     if (!userId) return;
 
     setLoading(true);
@@ -52,16 +49,26 @@ export function useMetricsHistory(userId: string | null) {
         .filter((record) => record.pending_delete === 0)
         .toArray();
 
-      localRecords.sort(
+      // Sort based on selected order
+      let sortedRecords = [...localRecords];
+      
+      if (sortOrder === 'newest') {
+        sortedRecords.sort(
           (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()
-      );
-      setRecords(localRecords);
+        );
+      } else {
+        sortedRecords.sort(
+          (a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
+        );
+      }
+      
+      setRecords(sortedRecords);
     } catch (err) {
       console.error("Error loading local metrics:", err);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, sortOrder]);
 
   const deleteRecord = async (id: string) => {
     if (navigator.onLine) {
@@ -83,17 +90,17 @@ export function useMetricsHistory(userId: string | null) {
   };
 
   useEffect(() => {
-    // Only fire when userId is a real non-empty string.
     if (userId) {
       fetchHistory();
     }
-  }, [userId, fetchHistory]);
+  }, [userId, sortOrder, fetchHistory]);
 
   return {
     records,
-    //  Still "loading" if userId hasn't resolved yet.
     loading: loading || !userId,
     refresh: fetchHistory,
     deleteRecord,
+    setSortOrder,
+    sortOrder,
   };
 }

@@ -5,7 +5,7 @@ import { browserEnv } from '@/lib/env';
 const { supabaseUrl, supabasePublishableKey } = browserEnv;
 
 // ✅ Validate required environment variables
-const missingVars = [];
+const missingVars: string[] = [];
 if (!supabaseUrl) missingVars.push('SUPABASE_URL');
 if (!supabasePublishableKey) missingVars.push('SUPABASE_PUBLISHABLE_KEY');
 
@@ -16,11 +16,11 @@ if (missingVars.length > 0) {
   );
 }
 
-export const supabase = createClient<any>(supabaseUrl, supabasePublishableKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   auth: {
-    storage: localStorage,
+    storage: typeof window !== 'undefined' ? localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
   },
-}) as any;
+});
   

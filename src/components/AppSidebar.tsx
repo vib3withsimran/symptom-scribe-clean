@@ -26,6 +26,17 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -100,19 +111,37 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleSignOut}
-                  className="hover:bg-destructive/10 text-destructive"
-                >
-                  <LogOut className="h-5 w-5" />
-                  {!isCollapsed && <span>Sign Out</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
+              <AlertDialog>
+               <AlertDialogTrigger asChild>
+               <SidebarMenuButton className="hover:bg-destructive/10 text-destructive">
+               <LogOut className="h-5 w-5" /> {!isCollapsed && <span>Sign Out</span>}
+               </SidebarMenuButton>
+               </AlertDialogTrigger>
+
+              <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle> Confirm Sign Out</AlertDialogTitle>
+
+               <AlertDialogDescription>Are you sure you want to sign out? You will need to sign in again to access your account.</AlertDialogDescription>
+               </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                <AlertDialogCancel>
+                Cancel
+               </AlertDialogCancel>
+ 
+               <AlertDialogAction
+               onClick={handleSignOut}>
+              Sign Out
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+              
+       </SidebarMenu>
+     </SidebarGroupContent>
+    </SidebarGroup>
+   </SidebarContent>
+ </Sidebar>
+);
 }

@@ -294,7 +294,7 @@ const AIHealthAssistant = () => {
   const hasMessages = messages.length > 0 || loading;
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-full bg-background text-foreground overflow-hidden w-full">
       {/* Header */}
       <div className="flex-shrink-0 px-5 py-3 border-b border-border flex items-center justify-end gap-3">
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -313,14 +313,14 @@ const AIHealthAssistant = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold">Hello! I'm your AI Health Assistant 👋</h2>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                <p className="text-sm text-muted-foreground mt-1 max-w-[280px] mx-auto">
                   I can help you understand your symptoms and provide health insights.{" "}
                   <span className="text-teal-500 font-medium">How can I assist you today?</span>
                 </p>
               </div>
             </div>
 
-            <div className="w-full max-w-lg">
+            <div className="w-full">
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs text-muted-foreground px-2">Try asking</span>
@@ -473,7 +473,7 @@ const AIHealthAssistant = () => {
             </button>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-1.5">
+          <p className="text-center text-xs text-muted-foreground mt-1.5 px-2 break-words">
             {isListening
               ? "🔴 Listening… click the mic to stop"
               : "AI-generated guidance — always consult a doctor for medical advice"}

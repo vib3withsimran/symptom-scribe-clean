@@ -8,23 +8,23 @@ Symptom Scribe is an AI-powered health and wellness platform designed to help us
 
 # 📑 Table of Contents
 
-* Project Overview
-* Objectives
-* Key Features
-* Technology Stack
-* Screenshots
-* Installation & Setup
-* Environment Variables
-* Supabase Edge Function Setup
-* API & Backend Services
-* Project Structure
-* Usage Guide
-* Troubleshooting
-* FAQ
-* Contributing
-* Future Enhancements
-* License
-* Author
+- [Project Overview](#-project-overview)
+- [Objectives](#-objectives)
+- [Key Features](#-key-features)
+- [Technology Stack](#%EF%B8%8F-technology-stack)
+- [Screenshots](#-screenshots)
+- [Installation & Setup](#-installation--setup)
+- [Environment Variables](#-environment-variables)
+- [Supabase Edge Function Setup](#%EF%B8%8F-supabase-edge-function-setup)
+- [API & Backend Services](#-api--backend-services)
+- [Project Structure](#-project-structure)
+- [Usage Guide](#-usage-guide)
+- [Troubleshooting](#%EF%B8%8F-troubleshooting)
+- [FAQ](#-faq)
+- [Contributing](#-contributing)
+- [Future Enhancements](#-future-enhancements)
+- [License](#-license)
+- [Author](#%E2%80%8D-author)
 
 ---
 

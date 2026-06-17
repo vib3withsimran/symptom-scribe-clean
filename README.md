@@ -483,6 +483,13 @@ Contributions are welcome!
 4. Push your branch.
 5. Open a Pull Request.
 
+###  Contributors
+
+Thanks to all contributors ❤️
+
+[![Contributors](https://contrib.rocks/image?repo=mohdmaazgani/symptom-scribe-clean)](https://github.com/mohdmaazgani/symptom-scribe-clean/graphs/contributors)
+
+
 ## Pull Request Requirements
 
 ### Related Issue

@@ -564,6 +564,26 @@ const BrainGames = () => {
         const completionBonus = 50;
         awardXp(completionBonus);
         showSuccess("Game Complete!", `+${completionBonus} XP bonus!`);
+        if ((xp + completionBonus) >= 100 && xp < 100) {
+          showSuccess(
+            "🏆 Achievement Unlocked!",
+            "First 100 XP achieved!"
+          );
+        }
+
+        if ((level + 1) >= 3) {
+          showSuccess(
+           "🎖 Achievement Unlocked!",
+           "Reached Level 3!"
+          );
+        }
+
+        if (percentage >= 90) {
+          showSuccess(
+           "🥇 Achievement Unlocked!",
+           "Perfect Performance Badge Earned!"
+          );
+        }
         return;
       }
 
@@ -1251,6 +1271,15 @@ const BrainGames = () => {
                 Total XP
               </p>
             </div>
+            <div className="mt-4 text-center">
+              <p className="text-xs font-semibold text-primary">
+               🎯 Next Milestone
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                Reach Level {level + 1}
+              </p>
+            </div>
             <div className="w-px h-10 bg-border/50" />
             <div className="p-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-lg shadow-orange-500/20">
               <Trophy className="w-6 h-6 text-white" />
@@ -1260,16 +1289,34 @@ const BrainGames = () => {
           <div className="space-y-1.5 w-full">
             <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <span>Progress to Level {level + 1}</span>
-              <span>{xp % XP_PER_LEVEL} / {XP_PER_LEVEL} XP</span>
+              <span> {Math.round(((xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100)}%</span>
             </div>
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/10">
+            <div className="flex gap-1 mt-2">
+              {[...Array(10)].map((_, index) => {
+            const progress =
+               ((xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 10;
+
+            return (
               <motion.div
-                className="h-full bg-gradient-to-r from-primary to-primary-glow rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${((xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
+               key={index}
+               initial={{ opacity: 0.3, scale: 0.8 }}
+               animate={{
+               opacity: index < progress ? 1 : 0.3,
+               scale: index < progress ? 1 : 0.8,
+            }}
+              transition={{ duration: 0.3 }}
+              className={`h-2 flex-1 rounded-full ${
+              index < progress
+              ? "bg-primary shadow-md"
+              : "bg-slate-300 dark:bg-slate-700"
+             }`}
+            />
+          );
+         })}
+       </div>
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              {XP_PER_LEVEL - (xp % XP_PER_LEVEL)} XP remaining to reach Level {level + 1}
+            </p>
           </div>
         </motion.div>
       </header>

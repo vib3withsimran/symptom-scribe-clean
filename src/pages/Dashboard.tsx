@@ -57,7 +57,7 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
   return (
     <div className="relative flex items-center justify-center w-20 h-20 select-none">
       <div className={`absolute inset-1 rounded-full animate-pulse blur-md opacity-20 ${pulseColor}`} />
-      
+
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 88 88">
         <defs>
           <linearGradient id="wellness-green" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -73,7 +73,7 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
             <stop offset="100%" stopColor="#e11d48" />
           </linearGradient>
         </defs>
-        
+
         <circle
           cx="44"
           cy="44"
@@ -83,7 +83,7 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
           className="text-muted/10 dark:text-muted/20"
           strokeWidth="6"
         />
-        
+
         <circle
           cx="44"
           cy="44"
@@ -97,7 +97,7 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
           className="transition-all duration-1000 ease-out"
         />
       </svg>
-      
+
       <div className="absolute flex flex-col items-center justify-center text-center">
         <span className={`text-base font-black tracking-tight ${textColor}`}>
           {score}%
@@ -295,7 +295,7 @@ const Dashboard = () => {
       : "bg-green-500/10 border-green-500 text-green-400"
   }`}
 >
-  
+
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.symptoms.substring(0, 60)}...</p>
                     <p className="text-xs text-muted-foreground mt-1">

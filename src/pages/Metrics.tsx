@@ -28,9 +28,11 @@ import {
   TrendingUp,
   ArrowUpDown,
 } from "lucide-react";
+import type { Json } from "@/integrations/supabase/types";
 import { showSuccess, showError } from "@/lib/toast-helpers";
 import { useMetricsHistory } from "@/hooks/useMetricsHistory";
-import { db, syncOfflineData, type OfflineMetric } from "@/lib/offline-db";
+import { db, syncOfflineData, type OfflineMetric, encryptMetric } from "@/lib/offline-db";
+import { whenEncryptionReady } from "@/lib/encryption";
 import { invalidateCache } from "@/lib/cached-queries";
 import {
   Table,
@@ -236,12 +238,14 @@ const Metrics = () => {
       const recordId = crypto.randomUUID();
       const recordedAt = new Date().toISOString();
 
+      const key = await whenEncryptionReady();
+
       if (navigator.onLine) {
         const { error } = await supabase.from("health_metrics").insert({
           id: recordId,
           user_id: user.id,
           metric_type: metricType,
-          value: metricValue,
+          value: metricValue as Json,
           notes: notes || null,
           recorded_at: recordedAt,
         });
@@ -250,7 +254,8 @@ const Metrics = () => {
 
         await invalidateCache("health_metrics");
 
-        await db.healthMetrics.put({
+        // Cache locally
+        const record = {
           id: recordId,
           user_id: user.id,
           metric_type: metricType,
@@ -259,14 +264,17 @@ const Metrics = () => {
           recorded_at: recordedAt,
           pending_sync: 0,
           pending_delete: 0,
-        });
+        };
+        const encryptedRecord = await encryptMetric(record, key);
+        await db.healthMetrics.put(encryptedRecord);
 
         showSuccess(
           `${metricLabel} Recorded`,
           "Your health metric has been saved successfully.",
         );
       } else {
-        await db.healthMetrics.put({
+        // Save offline in local database
+        const record = {
           id: recordId,
           user_id: user.id,
           metric_type: metricType,
@@ -275,7 +283,9 @@ const Metrics = () => {
           recorded_at: recordedAt,
           pending_sync: 1,
           pending_delete: 0,
-        });
+        };
+        const encryptedRecord = await encryptMetric(record, key);
+        await db.healthMetrics.put(encryptedRecord);
 
         showSuccess(
           `${metricLabel} Saved Offline`,

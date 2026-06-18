@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, X, Trash2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { showSuccess, showError } from "@/lib/toast-helpers";
-import { db, syncOfflineData } from "@/lib/offline-db";
+import { db, syncOfflineData, encryptSymptom, decryptSymptom } from "@/lib/offline-db";
+import { whenEncryptionReady } from "@/lib/encryption";
 import { getCachedData, invalidateCache } from "@/lib/cached-queries";
 import {
   AlertDialog,
@@ -60,10 +61,27 @@ const History = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('symptom-search-input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const fetchHistory = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const key = await whenEncryptionReady();
 
       if (navigator.onLine) {
         const { data, error } = await getCachedData<SymptomEntry[]>("symptom_history");
@@ -82,22 +100,26 @@ const History = () => {
             )
             .delete();
 
-          const localEntries = data.map((record: SymptomEntry) => ({
+          const localEntries = data.map((record) => ({
             id: record.id,
-            user_id: user.id,
-            symptoms: record.symptoms,
-            severity_level: record.severity_level,
+            user_id: record.user_id,
+            symptoms: record.symptoms || "",
+            severity_level: record.severity_level || "low",
             possible_causes: record.possible_causes,
             recommendations: record.recommendations,
             risk_score: record.risk_score,
-            resolved: record.resolved,
+            resolved: !!record.resolved,
             created_at: record.created_at || new Date().toISOString(),
             pending_sync: 0,
             pending_update: 0,
             pending_delete: 0,
           }));
 
-          await db.symptomHistory.bulkPut(localEntries);
+          const encryptedEntries = await Promise.all(
+            localEntries.map((entry) => encryptSymptom(entry, key))
+          );
+
+          await db.symptomHistory.bulkPut(encryptedEntries);
         }
       }
     } catch (error) {
@@ -107,16 +129,21 @@ const History = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const key = await whenEncryptionReady();
         const localRecords = await db.symptomHistory
           .where("user_id")
           .equals(user.id)
           .filter((record) => record.pending_delete === 0)
           .toArray();
 
-        localRecords.sort(
+        const decryptedRecords = await Promise.all(
+          localRecords.map((record) => decryptSymptom(record, key))
+        );
+
+        decryptedRecords.sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-        setHistory(localRecords as unknown as SymptomEntry[]);
+        setHistory(decryptedRecords as unknown as SymptomEntry[]);
       }
     } catch (err) {
       console.error("Error loading local symptoms:", err);
@@ -198,7 +225,7 @@ const History = () => {
     URL.revokeObjectURL(url);
   };
 
-  const getSeverityColor = (severity: string): "destructive" | "default" | "secondary" => {
+  const getSeverityColor = (severity: string): "default" | "secondary" | "destructive" => {
     switch (severity) {
       case "high": return "destructive";
       case "moderate": return "default";
@@ -206,8 +233,6 @@ const History = () => {
     }
   };
 
-  // FIX #3: Derive filteredHistory BEFORE render so we can show the correct
-  // empty state when search/filter produces zero results (vs. genuinely no data).
   const filteredHistory = history.filter(
     (entry) =>
       entry.symptoms.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -242,8 +267,9 @@ const History = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
+            id="symptom-search-input"
             type="text"
-            placeholder="Search symptoms..."
+            placeholder="Search symptoms... (Ctrl+K to focus)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -261,10 +287,26 @@ const History = () => {
         </select>
       </div>
 
+      {isFiltering && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { 
+              setSearchQuery(""); 
+              setSeverityFilter("all"); 
+            }}
+            className="gap-2"
+          >
+            <X className="h-4 w-4" />
+            Clear All Filters
+          </Button>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-center text-muted-foreground">Loading history...</p>
       ) : history.length === 0 ? (
-        // FIX #3: Genuinely no data at all
         <Card>
           <CardContent className="pt-6 text-center space-y-2">
             <p className="text-muted-foreground">
@@ -273,7 +315,6 @@ const History = () => {
           </CardContent>
         </Card>
       ) : filteredHistory.length === 0 ? (
-        // FIX #3: Data exists but filters returned nothing — different message
         <Card>
           <CardContent className="pt-6 text-center space-y-2">
             <p className="text-muted-foreground">
@@ -289,7 +330,6 @@ const History = () => {
           </CardContent>
         </Card>
       ) : (
-        // FIX #3: Render filteredHistory, not history
         <div className="space-y-4">
           {filteredHistory.map((entry) => (
             <Card key={entry.id} className={entry.resolved ? "opacity-70" : ""}>

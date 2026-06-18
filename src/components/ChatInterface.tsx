@@ -267,7 +267,7 @@ const ChatInterface = () => {
         setSessions((prev) =>
           prev.map((s) =>
             s.id === currentSessionId
-              ? { ...s, messages: finalMessages, updated_at: new Date().toISOString() }
+              ? { ...s, messages: finalMessages as unknown as Json, updated_at: new Date().toISOString() }
               : s
           )
         );

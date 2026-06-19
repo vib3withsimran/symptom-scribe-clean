@@ -38,18 +38,6 @@ const App = () => {
   useEffect(() => {
     const cleanup = initializeEncryption();
 
-    const syncOnBoot = async () => {
-      if (navigator.onLine) {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            await syncOfflineData();
-          }
-        } catch (err) {
-          console.error("Failed to sync offline data on boot:", err);
-        }
-      }
-    };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -62,8 +50,6 @@ const App = () => {
         }
       }
     );
-
-    syncOnBoot();
 
     return () => {
       cleanup?.();
@@ -79,143 +65,143 @@ const App = () => {
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword/>}/>
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Chat />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/metrics"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Metrics />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/history"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <History />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Profile />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/emergency"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Emergency />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/brain-games"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <BrainGames />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health-facts"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HealthFacts />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Settings />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-           <Route
-            path="/ai-health-assistant"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AIHealthAssistant />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Chat />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/metrics"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Metrics />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <History />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/emergency"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Emergency />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/brain-games"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BrainGames />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/health-facts"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <HealthFacts />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai-health-assistant"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AIHealthAssistant />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/privacy"
-            element={
-              <Privacy />
-            }
-          />
-          <Route
-            path="/terms"
-            element={
-              <Terms />
-            }
-          />
-          <Route
-            path="/disclaimer"
-            element={
-              <Disclaimer />
-            }
-          />
-          <Route
-            path="/accessibility"
-            element={
-              <Accessibility />
-            }
-          />
-          <Route path="/health-library" element={<HealthLibrary />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            <Route
+              path="/privacy"
+              element={
+                <Privacy />
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <Terms />
+              }
+            />
+            <Route
+              path="/disclaimer"
+              element={
+                <Disclaimer />
+              }
+            />
+            <Route
+              path="/accessibility"
+              element={
+                <Accessibility />
+              }
+            />
+            <Route path="/health-library" element={<HealthLibrary />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 

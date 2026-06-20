@@ -293,6 +293,11 @@ async function handleSessionChange(session: Session) {  // session carries user.
 }
 
 async function handleSessionClear() {
+  // Clear the per-user PBKDF2 salt from localStorage on logout so it does
+  // not persist across sessions. userId must be captured before keys are nulled.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id) clearUserSalt(user.id);
+
   setKeys(null, null);
   lastToken = null;
   localStorage.removeItem("symptom_scribe_last_token");

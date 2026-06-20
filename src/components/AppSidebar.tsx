@@ -10,7 +10,9 @@ import {
   Sparkles,
   Settings,
   Bot,
+  Trophy,
 } from "lucide-react";
+
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +45,7 @@ const menuItems = [
   { title: "AI Health Assistant", url: "/ai-health-assistant", icon: Bot },
   { title: "Health Metrics", url: "/metrics", icon: Activity },
   { title: "History", url: "/history", icon: History },
+  { title: "Challenges", url: "/gamification", icon: Trophy },
   { title: "Profile", url: "/profile", icon: User },
   { title: "Emergency", url: "/emergency", icon: Phone },
   { title: "Brain Games", url: "/brain-games", icon: Brain },

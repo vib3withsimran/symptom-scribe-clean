@@ -33,6 +33,7 @@ import Contact from "./pages/Contact";
 import ScrollToTop from "@/components/ScrollToTop";
 import BlogPostPage from "@/pages/BlogPostPage";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import GamificationPage from "@/pages/Gamification";
 const queryClient = new QueryClient();
 const App = () => {
   useEffect(() => {
@@ -180,6 +181,16 @@ const App = () => {
                   <AIHealthAssistant />
                 </Layout>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gamification"
+            element={
+           <ProtectedRoute>
+           <Layout>
+          <GamificationPage />
+            </Layout>
+           </ProtectedRoute>
             }
           />
 

@@ -6,7 +6,7 @@ import { browserEnv } from "@/lib/env";
 import { invalidateCache } from "@/lib/cached-queries";
 import { whenKeysReady } from "@/lib/encryption";
 import { encryptSymptom, db, type OfflineSymptom } from "@/lib/offline-db";
-import { Volume2, VolumeX, Bot, Mic, MicOff, Send } from "lucide-react";
+import { Volume2, VolumeX, Bot, Mic, MicOff, Send, Check } from "lucide-react";
 import { motion } from "framer-motion";
 
 const suggestions = [
@@ -211,14 +211,14 @@ const AIHealthAssistant = () => {
       });
 
       if (!response.ok || !response.body) {
-  if (response.status === 401 || response.status === 403) {
-    throw new Error("AUTH_ERROR");
-  } else if (response.status >= 500) {
-    throw new Error("SERVER_ERROR");
-  } else {
-    throw new Error("UNKNOWN_ERROR");
-  }
-}
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("AUTH_ERROR");
+        } else if (response.status >= 500) {
+          throw new Error("SERVER_ERROR");
+        } else {
+          throw new Error("UNKNOWN_ERROR");
+        }
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -516,7 +516,7 @@ const AIHealthAssistant = () => {
                   <span
                     className={`text-[10px] text-muted-foreground px-1 ${msg.role === "user" ? "text-right" : "text-left"}`}
                   >
-                    {msg.time} {msg.role === "user" && "✓"}
+                    {msg.time} {msg.role === "user" && <Check className="w-3 h-3 inline" />}
                   </span>
                 </div>
               </div>

@@ -76,6 +76,14 @@ const AIHealthAssistant = () => {
     };
   }, []);
 
+   // Auto-resize textarea as content grows
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [symptoms]);
+
   const handleToggleSpeech = (text: string) => {
     if (currentlyReadingText === text) {
       window.speechSynthesis.cancel();

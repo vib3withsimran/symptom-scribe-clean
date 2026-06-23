@@ -15,6 +15,8 @@ import { showSuccess, showInfo, showError, showWarning } from "@/lib/toast-helpe
 import { supabase } from "@/integrations/supabase/client";
 import { meshNetwork, type MeshPeer } from "@/lib/mesh-network";
 import { db, type MeshAlert } from "@/lib/offline-db";
+import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
+
 
 // ─── Mobile Detection ────────────────────────────────────────────────────────
 const isMobile = () =>
@@ -299,8 +301,18 @@ const Emergency = () => {
         if (error) {
           console.error("Error loading emergency profile info:", error);
         } else if (data) {
-          setProfile(data);
+          const key = await whenEncryptionReady();
+          const decryptedFullName = await decryptProfileField(data.full_name, key);
+          const decryptedEmergencyName = await decryptProfileField(data.emergency_contact_name, key);
+          const decryptedEmergencyPhone = await decryptProfileField(data.emergency_contact_phone, key);
+
+          setProfile({
+            full_name: decryptedFullName,
+            emergency_contact_name: decryptedEmergencyName,
+            emergency_contact_phone: decryptedEmergencyPhone,
+          });
         }
+
       } catch (err) {
         console.error("Error loading profile:", err);
       } finally {

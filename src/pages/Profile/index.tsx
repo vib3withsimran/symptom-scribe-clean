@@ -7,6 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Loader2 } from "lucide-react";
 import { showSuccess, showError, showInfo, showWarning } from "@/lib/toast-helpers";
+import {
+  whenEncryptionReady,
+  encryptProfileField,
+  decryptProfileField,
+  encryptProfileArray,
+  decryptProfileArray,
+} from "@/lib/encryption";
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);
@@ -49,21 +56,29 @@ const Profile = () => {
       }
 
       if (data) {
+        const key = await whenEncryptionReady();
+        const decryptedFullName = await decryptProfileField(data.full_name, key);
+        const decryptedDob = await decryptProfileField(data.date_of_birth, key);
+        const decryptedEmergencyName = await decryptProfileField(data.emergency_contact_name, key);
+        const decryptedEmergencyPhone = await decryptProfileField(data.emergency_contact_phone, key);
+        const decryptedAllergies = await decryptProfileArray(data.allergies, key);
+        const decryptedChronicConditions = await decryptProfileArray(data.chronic_conditions, key);
+
         setProfile({
-          full_name: data.full_name || "",
-          date_of_birth: data.date_of_birth || "",
+          full_name: decryptedFullName,
+          date_of_birth: decryptedDob,
           gender: data.gender || "",
           blood_type: data.blood_type || "",
-          allergies: data.allergies || [],
-          chronic_conditions: data.chronic_conditions || [],
-          emergency_contact_name: data.emergency_contact_name || "",
-          emergency_contact_phone: data.emergency_contact_phone || "",
+          allergies: decryptedAllergies,
+          chronic_conditions: decryptedChronicConditions,
+          emergency_contact_name: decryptedEmergencyName,
+          emergency_contact_phone: decryptedEmergencyPhone,
         });
-        setAllergiesInput(data.allergies?.join(", ") || "");
-        setConditionsInput(data.chronic_conditions?.join(", ") || "");
+        setAllergiesInput(decryptedAllergies.join(", ") || "");
+        setConditionsInput(decryptedChronicConditions.join(", ") || "");
         
-        if (data.full_name) {
-          showInfo("Profile Loaded", `Welcome back, ${data.full_name}!`);
+        if (decryptedFullName) {
+          showInfo("Profile Loaded", `Welcome back, ${decryptedFullName}!`);
         } else {
           showInfo("Complete Your Profile", "Add your health information for better AI recommendations");
         }
@@ -135,6 +150,8 @@ if (!profile.blood_type) {
 
       console.log("Current user:", user.id);
 
+      const key = await whenEncryptionReady();
+
       const allergiesArray = allergiesInput
         .split(",")
         .map((a) => a.trim())
@@ -144,16 +161,23 @@ if (!profile.blood_type) {
         .map((c) => c.trim())
         .filter((c) => c);
 
+      const encryptedFullName = await encryptProfileField(profile.full_name, key);
+      const encryptedDob = await encryptProfileField(profile.date_of_birth, key);
+      const encryptedEmergencyName = await encryptProfileField(profile.emergency_contact_name, key);
+      const encryptedEmergencyPhone = await encryptProfileField(profile.emergency_contact_phone, key);
+      const encryptedAllergies = await encryptProfileArray(allergiesArray, key);
+      const encryptedChronicConditions = await encryptProfileArray(conditionsArray, key);
+
       const profileData = {
         user_id: user.id,
-        full_name: profile.full_name || null,
-        date_of_birth: profile.date_of_birth || null,
+        full_name: encryptedFullName,
+        date_of_birth: encryptedDob,
         gender: profile.gender || null,
         blood_type: profile.blood_type || null,
-        allergies: allergiesArray,
-        chronic_conditions: conditionsArray,
-        emergency_contact_name: profile.emergency_contact_name || null,
-        emergency_contact_phone: profile.emergency_contact_phone || null,
+        allergies: encryptedAllergies,
+        chronic_conditions: encryptedChronicConditions,
+        emergency_contact_name: encryptedEmergencyName,
+        emergency_contact_phone: encryptedEmergencyPhone,
         updated_at: new Date().toISOString(),
       };
 

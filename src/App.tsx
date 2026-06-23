@@ -4,7 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
-import { initializeEncryption } from "@/lib/encryption";
+import {
+  initializeEncryption,
+  whenEncryptionReady,
+  encryptProfileField,
+  encryptProfileArray,
+} from "@/lib/encryption";
+
 import { supabase } from "@/integrations/supabase/client";
 import { syncOfflineData } from "@/lib/offline-db";
 import Index from "./pages/Index";
@@ -46,10 +52,50 @@ const App = () => {
             await syncOfflineData().catch((err) =>
               console.error("Failed to sync offline data on session ready:", err)
             );
+
+            // Handle pending profile details (from MultiStepSignUp)
+            const pendingProfileStr = localStorage.getItem("symptom_scribe_pending_profile");
+            if (pendingProfileStr) {
+              try {
+                const pendingProfile = JSON.parse(pendingProfileStr);
+                const key = await whenEncryptionReady();
+                const encryptedFullName = await encryptProfileField(pendingProfile.full_name, key);
+                const encryptedDob = await encryptProfileField(pendingProfile.date_of_birth, key);
+                const encryptedEmergencyName = await encryptProfileField(pendingProfile.emergency_contact_name, key);
+                const encryptedEmergencyPhone = await encryptProfileField(pendingProfile.emergency_contact_phone, key);
+                const encryptedAllergies = await encryptProfileArray(pendingProfile.allergies, key);
+                const encryptedChronicConditions = await encryptProfileArray(pendingProfile.chronic_conditions, key);
+
+                const { error } = await supabase
+                  .from("profiles")
+                  .upsert({
+                    user_id: session.user.id,
+                    full_name: encryptedFullName,
+                    date_of_birth: encryptedDob,
+                    gender: pendingProfile.gender || null,
+                    blood_type: pendingProfile.blood_type || null,
+                    allergies: encryptedAllergies,
+                    chronic_conditions: encryptedChronicConditions,
+                    emergency_contact_name: encryptedEmergencyName,
+                    emergency_contact_phone: encryptedEmergencyPhone,
+                    updated_at: new Date().toISOString(),
+                  }, { onConflict: "user_id" });
+
+                if (error) {
+                  console.error("Failed to sync pending profile details:", error);
+                } else {
+                  localStorage.removeItem("symptom_scribe_pending_profile");
+                  console.log("Successfully encrypted and synced pending profile details");
+                }
+              } catch (err) {
+                console.error("Failed parsing or encrypting pending profile:", err);
+              }
+            }
           }
         }
       }
     );
+
 
     return () => {
       cleanup?.();

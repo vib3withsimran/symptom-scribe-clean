@@ -434,3 +434,61 @@ export async function verifyPayload(
     return false;
   }
 }
+
+// ─── Profile Field Encryption / Decryption Helpers ────────────────────────────
+export async function encryptProfileField(
+  value: string | null | undefined,
+  key: CryptoKey
+): Promise<string | null> {
+  if (!value) return null;
+  if (value.startsWith("enc:str:")) return value;
+  const encrypted = await encryptText(value, key);
+  return `enc:str:${encrypted}`;
+}
+
+export async function decryptProfileField(
+  value: string | null | undefined,
+  key: CryptoKey
+): Promise<string> {
+  if (!value) return "";
+  if (value.startsWith("enc:str:")) {
+    try {
+      const rawEnc = value.substring(8);
+      return await decryptText(rawEnc, key);
+    } catch (e) {
+      console.error("Failed to decrypt profile field:", e);
+      return value;
+    }
+  }
+  return value;
+}
+
+export async function encryptProfileArray(
+  value: string[] | null | undefined,
+  key: CryptoKey
+): Promise<string[]> {
+  if (!value || value.length === 0) return [];
+  if (value.length === 1 && value[0].startsWith("enc:json:")) return value;
+  const stringified = JSON.stringify(value);
+  const encrypted = await encryptText(stringified, key);
+  return [`enc:json:${encrypted}`];
+}
+
+export async function decryptProfileArray(
+  value: string[] | null | undefined,
+  key: CryptoKey
+): Promise<string[]> {
+  if (!value || value.length === 0) return [];
+  if (value.length === 1 && value[0].startsWith("enc:json:")) {
+    try {
+      const rawEnc = value[0].substring(9);
+      const decrypted = await decryptText(rawEnc, key);
+      return JSON.parse(decrypted);
+    } catch (e) {
+      console.error("Failed to decrypt profile array:", e);
+      return value;
+    }
+  }
+  return value;
+}
+

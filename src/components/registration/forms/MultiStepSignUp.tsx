@@ -138,35 +138,53 @@ const MultiStepSignUp = () => {
     setLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
-      const { error: signUpError } = await supabase.auth.signUp({
+      
+      // Save full profile details to local storage temporarily to be encrypted once session key is derived
+      const pendingProfile = {
+        full_name: data.full_name || null,
+        date_of_birth: data.date_of_birth || null,
+        gender: data.gender || null,
+        blood_type: data.blood_type || null,
+        allergies: toArray(data.allergies),
+        chronic_conditions: toArray(data.chronic_conditions),
+        emergency_contact_name: data.emergency_contact_name || null,
+        emergency_contact_phone: data.emergency_contact_phone || null,
+      };
+      localStorage.setItem("symptom_scribe_pending_profile", JSON.stringify(pendingProfile));
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: data.full_name || null,
-            date_of_birth: data.date_of_birth || null,
             gender: data.gender || null,
             blood_type: data.blood_type || null,
-            allergies: toArray(data.allergies),
-            chronic_conditions: toArray(data.chronic_conditions),
-            emergency_contact_name: data.emergency_contact_name || null,
-            emergency_contact_phone: data.emergency_contact_phone || null,
           },
         },
       });
 
       if (signUpError) {
         showError("Sign Up Failed", signUpError.message);
+        // Clean up pending profile on failure
+        localStorage.removeItem("symptom_scribe_pending_profile");
         // Send the user back to the credentials step with their data intact.
         setStep(0);
         return;
       }
 
-      showSuccess(
-        "Welcome to Smart Health Tracker!",
-        "Your account and health profile are ready."
-      );
+      if (signUpData?.user && !signUpData?.session) {
+        showSuccess(
+          "Confirmation Email Sent",
+          "Please check your inbox and click the verification link to confirm your email before signing in."
+        );
+      } else {
+        showSuccess(
+          "Welcome to Smart Health Tracker!",
+          "Your account and health profile are ready."
+        );
+      }
+
     } catch (error) {
       console.error("Error during registration:", error);
       showError("Sign Up Failed", "Something went wrong. Please try again.");

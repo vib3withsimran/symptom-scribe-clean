@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/lib/toast-helpers";
+import { PasswordStrengthMeter } from "@/components/registration/shared/PasswordStrengthMeter";
+import { DEFAULT_PASSWORD_POLICY, evaluatePasswordStrength } from "@/lib/password-strength";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -12,6 +14,12 @@ const ResetPassword = () => {
   const handleReset = async () => {
     if (!password) {
       showError("Missing Password", "Please enter a new password.");
+      return;
+    }
+
+    const strength = evaluatePasswordStrength(password, DEFAULT_PASSWORD_POLICY);
+    if (!strength.isStrong) {
+      showError("Weak Password", "Password does not meet all strength requirements.");
       return;
     }
 
@@ -28,7 +36,7 @@ const ResetPassword = () => {
       return;
     }
 
-   showSuccess("Password Updated!", "You can now sign in with your new password.");
+    showSuccess("Password Updated!", "You can now sign in with your new password.");
     navigate("/auth");
   };
 
@@ -43,13 +51,18 @@ const ResetPassword = () => {
           Enter your new password below.
         </p>
 
-        <input
-          type="password"
-          placeholder="New Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-border bg-muted text-foreground p-3 mb-4 outline-none"
-        />
+        <div className="mb-6">
+          <PasswordStrengthMeter
+            value={password}
+            onChange={setPassword}
+            label="New Password"
+            placeholder="New Password"
+            policy={DEFAULT_PASSWORD_POLICY}
+            showGenerator={true}
+            id="reset-password"
+            required={true}
+          />
+        </div>
 
         <button
           onClick={handleReset}

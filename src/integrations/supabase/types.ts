@@ -41,42 +41,6 @@ export type Database = {
         }
         Relationships: []
       }
-      challenges: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
-          duration_days: number
-          icon: string | null
-          id: string
-          target_value: number
-          title: string
-          unit: string
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          duration_days: number
-          icon?: string | null
-          id?: string
-          target_value?: number
-          title: string
-          unit?: string
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          duration_days?: number
-          icon?: string | null
-          id?: string
-          target_value?: number
-          title?: string
-          unit?: string
-        }
-        Relationships: []
-      }
       health_metrics: {
         Row: {
           created_at: string | null
@@ -84,7 +48,6 @@ export type Database = {
           metric_type: string
           notes: string | null
           recorded_at: string | null
-          search_tokens: string[] | null
           user_id: string
           value: Json
         }
@@ -94,7 +57,6 @@ export type Database = {
           metric_type: string
           notes?: string | null
           recorded_at?: string | null
-          search_tokens?: string[] | null
           user_id: string
           value: Json
         }
@@ -104,36 +66,8 @@ export type Database = {
           metric_type?: string
           notes?: string | null
           recorded_at?: string | null
-          search_tokens?: string[] | null
           user_id?: string
           value?: Json
-        }
-        Relationships: []
-      }
-      mood_logs: {
-        Row: {
-          created_at: string | null
-          id: string
-          logged_at: string
-          mood: string
-          note: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          logged_at: string
-          mood: string
-          note?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          logged_at?: string
-          mood?: string
-          note?: string | null
-          user_id?: string
         }
         Relationships: []
       }
@@ -198,7 +132,6 @@ export type Database = {
           recommendations: string[] | null
           resolved: boolean | null
           risk_score: number | null
-          search_tokens: string[] | null
           severity_level: string
           symptoms: string
           updated_at: string | null
@@ -213,7 +146,6 @@ export type Database = {
           recommendations?: string[] | null
           resolved?: boolean | null
           risk_score?: number | null
-          search_tokens?: string[] | null
           severity_level: string
           symptoms: string
           updated_at?: string | null
@@ -228,97 +160,9 @@ export type Database = {
           recommendations?: string[] | null
           resolved?: boolean | null
           risk_score?: number | null
-          search_tokens?: string[] | null
           severity_level?: string
           symptoms?: string
           updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_badges: {
-        Row: {
-          badge_id: string
-          earned_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          badge_id: string
-          earned_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          badge_id?: string
-          earned_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      badges: {
-        Row: {
-          condition_type: string
-          condition_value: number
-          description: string
-          icon: string
-          id: string
-          name: string
-        }
-        Insert: {
-          condition_type: string
-          condition_value: number
-          description: string
-          icon: string
-          id?: string
-          name: string
-        }
-        Update: {
-          condition_type?: string
-          condition_value?: number
-          description?: string
-          icon?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      user_challenges: {
-        Row: {
-          best_streak: number | null
-          challenge_id: string
-          completed: boolean | null
-          current_streak: number | null
-          id: string
-          last_check_in: string | null
-          started_at: string | null
-          status: string | null
-          streak_count: number | null
-          user_id: string
-        }
-        Insert: {
-          best_streak?: number | null
-          challenge_id: string
-          completed?: boolean | null
-          current_streak?: number | null
-          id?: string
-          last_check_in?: string | null
-          started_at?: string | null
-          status?: string | null
-          streak_count?: number | null
-          user_id: string
-        }
-        Update: {
-          best_streak?: number | null
-          challenge_id?: string
-          completed?: boolean | null
-          current_streak?: number | null
-          id?: string
-          last_check_in?: string | null
-          started_at?: string | null
-          status?: string | null
-          streak_count?: number | null
           user_id?: string
         }
         Relationships: []
@@ -328,12 +172,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      award_user_xp: {
-        Args: {
-          points_to_add: number
-        }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

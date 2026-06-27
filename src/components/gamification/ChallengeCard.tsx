@@ -13,13 +13,10 @@ interface Challenge {
 
 interface UserChallenge {
   id: string;
-  status?: string | null;
-  streak_count?: number | null;
-  best_streak?: number | null;
-  current_streak?: number | null;
-  completed?: boolean | null;
-  last_checked_in?: string | null;
-  last_check_in?: string | null;
+  status: string;
+  streak_count: number;
+  best_streak: number;
+  last_checked_in?: string;
 }
 
 interface Props {
@@ -31,13 +28,12 @@ interface Props {
 
 export default function ChallengeCard({ challenge, userChallenge, onJoin, onCheckIn }: Props) {
   const isJoined = !!userChallenge;
-  const isCompleted = userChallenge?.completed || userChallenge?.status === "completed";
-  const streak = userChallenge?.current_streak ?? userChallenge?.streak_count ?? 0;
+  const isCompleted = userChallenge?.status === "completed";
+  const streak = userChallenge?.streak_count ?? 0;
   const progress = Math.min((streak / challenge.duration_days) * 100, 100);
 
   const today = new Date().toISOString().split("T")[0];
-  const checkedInToday =
-    (userChallenge?.last_checked_in ?? userChallenge?.last_check_in) === today;
+  const checkedInToday = userChallenge?.last_checked_in === today;
 
   return (
     <div className="relative rounded-xl border border-border bg-card p-5 flex flex-col gap-4 transition-all hover:shadow-md hover:-translate-y-0.5">

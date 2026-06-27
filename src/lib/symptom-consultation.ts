@@ -4,9 +4,7 @@ export interface ParsedSymptomConsultation {
   severityLevel: "low" | "moderate" | "high";
 }
 
-export function parseSymptomConsultation(
-  assistantContent: string
-): ParsedSymptomConsultation {
+export function parseSymptomConsultation(assistantContent: string): ParsedSymptomConsultation {
   const possibleCauses: string[] = [];
   const recommendations: string[] = [];
   let severityLevel: ParsedSymptomConsultation["severityLevel"] = "low";
@@ -28,7 +26,8 @@ export function parseSymptomConsultation(
         /severity(?:\s+level)?\s*:\s*[*_#`[]*\s*(low|moderate|high)/i
       );
       if (severityMatch) {
-        severityLevel = severityMatch[1].toLowerCase() as ParsedSymptomConsultation["severityLevel"];
+        severityLevel =
+          severityMatch[1].toLowerCase() as ParsedSymptomConsultation["severityLevel"];
       }
       continue;
     }
@@ -38,8 +37,7 @@ export function parseSymptomConsultation(
       continue;
     }
 
-    const listMatch =
-      trimmedLine.match(/^[-*•]\s+(.+)/) || trimmedLine.match(/^\d+\.\s+(.+)/);
+    const listMatch = trimmedLine.match(/^[-*•]\s+(.+)/) || trimmedLine.match(/^\d+\.\s+(.+)/);
 
     if (!listMatch) continue;
 

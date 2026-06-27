@@ -6,12 +6,22 @@ import { browserEnv } from "@/lib/env";
 import { invalidateCache } from "@/lib/cached-queries";
 import { whenKeysReady } from "@/lib/encryption";
 import { encryptSymptom, db, type OfflineSymptom } from "@/lib/offline-db";
-import { type TablesInsert } from "@/integrations/supabase/types";
+
+import { parseSymptomConsultation, shouldPersistConsultation } from "@/lib/symptom-consultation";
 import {
-  parseSymptomConsultation,
-  shouldPersistConsultation,
-} from "@/lib/symptom-consultation";
-import { Volume2, VolumeX, Bot, Mic, MicOff, Send, Check, Thermometer, Wind, Brain, Utensils, BatteryLow } from "lucide-react";
+  Volume2,
+  VolumeX,
+  Bot,
+  Mic,
+  MicOff,
+  Send,
+  Check,
+  Thermometer,
+  Wind,
+  Brain,
+  Utensils,
+  BatteryLow,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 const suggestions = [
@@ -201,7 +211,9 @@ const AIHealthAssistant = () => {
         content: m.text,
       }));
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const token = session?.access_token || browserEnv.supabasePublishableKey;
 
       const response = await fetch(browserEnv.getSupabaseFunctionUrl("symptom-analyzer"), {
@@ -269,11 +281,8 @@ const AIHealthAssistant = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          const {
-            possibleCauses,
-            recommendations,
-            severityLevel,
-          } = parseSymptomConsultation(assistantContent);
+          const { possibleCauses, recommendations, severityLevel } =
+            parseSymptomConsultation(assistantContent);
 
           if (assistantContent.match(/severity(\s+level)?/i)) {
             showInfo("Severity Assessment", `AI rates this as ${severityLevel} severity`);
@@ -288,7 +297,7 @@ const AIHealthAssistant = () => {
 
           if (shouldPersistConsultation(assistantContent)) {
             const recordId = crypto.randomUUID();
-            const symptomInsert: TablesInsert<"symptom_history"> = {
+            const record = {
               id: recordId,
               user_id: user.id,
               symptoms: userMessage,
@@ -302,40 +311,20 @@ const AIHealthAssistant = () => {
             };
 
             const keys = await whenKeysReady();
-            const offlineRecord: OfflineSymptom = {
-              id: symptomInsert.id ?? recordId,
-              user_id: symptomInsert.user_id,
-              symptoms: symptomInsert.symptoms,
-              ai_analysis: symptomInsert.ai_analysis,
-              severity_level: symptomInsert.severity_level,
-              possible_causes: symptomInsert.possible_causes ?? null,
-              recommendations: symptomInsert.recommendations ?? null,
-              risk_score: symptomInsert.risk_score ?? null,
-              resolved: symptomInsert.resolved ?? false,
-              created_at: symptomInsert.created_at ?? new Date().toISOString(),
-              pending_sync: 0,
-              pending_update: 0,
-              pending_delete: 0,
-            };
-
             const encryptedRecord = await encryptSymptom(
-              offlineRecord,
+              record as unknown as OfflineSymptom,
               keys.encryptionKey,
               keys.searchKey
             );
-            const supabaseRecord: TablesInsert<"symptom_history"> = {
-              id: encryptedRecord.id,
-              user_id: encryptedRecord.user_id,
-              symptoms: encryptedRecord.symptoms,
-              ai_analysis: encryptedRecord.ai_analysis,
-              severity_level: encryptedRecord.severity_level,
-              possible_causes: encryptedRecord.possible_causes,
-              recommendations: encryptedRecord.recommendations,
-              risk_score: encryptedRecord.risk_score,
-              resolved: encryptedRecord.resolved,
-              created_at: encryptedRecord.created_at,
-              search_tokens: encryptedRecord.search_tokens ?? null,
-            };
+
+            // Strip offline-only fields and search_tokens so we match the Supabase table schema
+            const {
+              pending_sync,
+              pending_update,
+              pending_delete,
+              search_tokens,
+              ...supabaseRecord
+            } = encryptedRecord;
 
             const { error: insertError } = await supabase
               .from("symptom_history")
@@ -355,7 +344,10 @@ const AIHealthAssistant = () => {
                 pending_delete: 0,
               });
 
-              showSuccess("Saved to history", "This analysis has been added to your health records");
+              showSuccess(
+                "Saved to history",
+                "This analysis has been added to your health records"
+              );
             }
           }
         }
@@ -413,7 +405,7 @@ const AIHealthAssistant = () => {
               </div>
               <div className="w-full min-w-0 px-2">
                 <h2 className="text-base sm:text-lg font-semibold break-words">
-                  Hello! I'm your AI Health Assistant 
+                  Hello! I'm your AI Health Assistant
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto break-words">
                   I can help you understand your symptoms and provide health insights.{" "}

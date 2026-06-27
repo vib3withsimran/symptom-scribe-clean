@@ -25,9 +25,9 @@ RECOMMENDATIONS
   });
 
   it("persists completed consultations even when the AI response format varies", () => {
-    expect(
-      shouldPersistConsultation("Likely a mild viral illness. Please rest and hydrate.")
-    ).toBe(true);
+    expect(shouldPersistConsultation("Likely a mild viral illness. Please rest and hydrate.")).toBe(
+      true
+    );
     expect(shouldPersistConsultation("   ")).toBe(false);
   });
 

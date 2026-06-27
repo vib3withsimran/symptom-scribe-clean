@@ -32,7 +32,8 @@ interface SymptomHistoryRecord {
 async function fetchSymptomHistory(
   userId: string
 ): Promise<{ data: SymptomHistoryRecord[] | null; source: "cache" | "direct" | "none" }> {
-  const { data: cachedData, error } = await getCachedData<SymptomHistoryRecord[]>("symptom_history");
+  const { data: cachedData, error } =
+    await getCachedData<SymptomHistoryRecord[]>("symptom_history");
 
   if (!error && cachedData && cachedData.length > 0) {
     return { data: cachedData, source: "cache" };
@@ -87,7 +88,9 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
 
   return (
     <div className="relative flex items-center justify-center w-20 h-20 select-none">
-      <div className={`absolute inset-1 rounded-full animate-pulse blur-md opacity-20 ${pulseColor}`} />
+      <div
+        className={`absolute inset-1 rounded-full animate-pulse blur-md opacity-20 ${pulseColor}`}
+      />
 
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 88 88">
         <defs>
@@ -130,9 +133,7 @@ const RadialWellnessGauge = ({ score }: { score: number }) => {
       </svg>
 
       <div className="absolute flex flex-col items-center justify-center text-center">
-        <span className={`text-base font-black tracking-tight ${textColor}`}>
-          {score}%
-        </span>
+        <span className={`text-base font-black tracking-tight ${textColor}`}>{score}%</span>
         <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
           Well
         </span>
@@ -157,7 +158,9 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
@@ -171,12 +174,12 @@ const Dashboard = () => {
           rawSymptoms.map((s) => decryptSymptom(s as unknown as OfflineSymptom, key))
         );
 
-        const unresolved = symptoms.filter(s => !s.resolved).length;
+        const unresolved = symptoms.filter((s) => !s.resolved).length;
         const avgRisk = symptoms.reduce((sum, s) => sum + (s.risk_score || 0), 0) / symptoms.length;
 
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const recent = symptoms.filter(s => new Date(s.created_at) > sevenDaysAgo).length;
+        const recent = symptoms.filter((s) => new Date(s.created_at) > sevenDaysAgo).length;
 
         setStats({
           totalSymptoms: symptoms.length,
@@ -319,16 +322,15 @@ const Dashboard = () => {
             <div className="space-y-4">
               {recentHistory.map((item) => (
                 <div
-  key={item.id}
-  className={`flex items-start justify-between border-b pb-3 last:border-0 transition-all duration-300 hover:px-2 rounded-md p-2 ${
-    item.severity_level === "high"
-      ? "bg-red-500/10 border-red-500 text-red-400"
-      : item.severity_level === "moderate"
-      ? "bg-yellow-500/10 border-yellow-500 text-yellow-400"
-      : "bg-green-500/10 border-green-500 text-green-400"
-  }`}
->
-
+                  key={item.id}
+                  className={`flex items-start justify-between border-b pb-3 last:border-0 transition-all duration-300 hover:px-2 rounded-md p-2 ${
+                    item.severity_level === "high"
+                      ? "bg-red-500/10 border-red-500 text-red-400"
+                      : item.severity_level === "moderate"
+                        ? "bg-yellow-500/10 border-yellow-500 text-yellow-400"
+                        : "bg-green-500/10 border-green-500 text-green-400"
+                  }`}
+                >
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.symptoms.substring(0, 60)}...</p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -336,12 +338,12 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${getSeverityColor(item.severity_level)}`}>
+                    <span
+                      className={`text-sm font-medium ${getSeverityColor(item.severity_level)}`}
+                    >
                       {item.severity_level}
                     </span>
-                    {item.resolved && (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    )}
+                    {item.resolved && <CheckCircle className="w-4 h-4 text-green-500" />}
                   </div>
                 </div>
               ))}

@@ -68,10 +68,6 @@ function hexToUint8Array(hex: string): Uint8Array {
   return new Uint8Array(pairs.map((h) => parseInt(h, 16)));
 }
 
-function toBufferSource(bytes: Uint8Array): ArrayBuffer {
-  return Uint8Array.from(bytes).buffer;
-}
-
 // ─── Per-user PBKDF2 Salt ────────────────────────────────────────────────────
 // A random 16-byte salt is generated once per user and stored in localStorage
 // keyed by user ID. This prevents cross-user precomputation attacks that would
@@ -120,7 +116,7 @@ export async function deriveKeyFromToken(token: string, userId?: string): Promis
   return await crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: toBufferSource(salt),
+      salt: salt,
       iterations: 100000,
       hash: "SHA-256",
     },
@@ -153,7 +149,7 @@ export async function deriveSearchKeyFromToken(token: string, userId?: string): 
   return await crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: toBufferSource(salt),
+      salt: salt,
       iterations: 100000,
       hash: "SHA-256",
     },
@@ -232,10 +228,10 @@ export async function decryptText(encryptedText: string, key: CryptoKey): Promis
   const decryptedBuffer = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: toBufferSource(iv),
+      iv: iv,
     },
     key,
-    toBufferSource(ciphertext)
+    ciphertext
   );
 
   const decoder = new TextDecoder();
@@ -430,7 +426,7 @@ export async function verifyPayload(
         hash: { name: "SHA-256" },
       },
       publicKey,
-      toBufferSource(signatureBytes),
+      signatureBytes,
       data
     );
   } catch (err) {
@@ -495,3 +491,4 @@ export async function decryptProfileArray(
   }
   return value;
 }
+

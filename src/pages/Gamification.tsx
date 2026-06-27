@@ -27,7 +27,7 @@ export default function GamificationPage() {
   const checkIn = useCheckInChallenge();
   const logMood = useLogMood();
 
-  const activeCount = userChallenges.filter((c) => !c.completed).length;
+  const activeCount = userChallenges.filter((c) => c.status === "active").length;
   const bestStreak = userChallenges.reduce((max, c) => Math.max(max, c.best_streak ?? 0), 0);
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -132,7 +132,7 @@ export default function GamificationPage() {
           )}
 
           {activeTab === "badges" && (
-            <BadgeDisplay />
+            <BadgeDisplay userBadges={userBadges} />
           )}
         </div>
 

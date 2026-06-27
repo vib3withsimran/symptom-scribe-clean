@@ -21,9 +21,11 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
 }
+

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface MoodLog {
-  logged_at: string;
+  logged_date: string;
   mood: string;
 }
 
@@ -11,16 +11,16 @@ interface Props {
 }
 
 const MOODS = [
-  { key: "great",    label: "Great",    emoji: "😄", color: "#22c55e" },
+  { key: "happy",    label: "Great",    emoji: "😄", color: "#22c55e" },
   { key: "good",     label: "Good",     emoji: "🙂", color: "#84cc16" },
   { key: "neutral",  label: "Neutral",  emoji: "😐", color: "#eab308" },
-  { key: "bad",      label: "Bad",      emoji: "😞", color: "#f97316" },
-  { key: "terrible", label: "Terrible", emoji: "😢", color: "#ef4444" },
+  { key: "sad",      label: "Bad",      emoji: "😞", color: "#f97316" },
+  { key: "stressed", label: "Terrible", emoji: "😢", color: "#ef4444" },
 ];
 
 const MOOD_COLOR: Record<string, string> = {
-  great: "#22c55e", good: "#84cc16", neutral: "#eab308",
-  bad: "#f97316",   terrible: "#ef4444",
+  happy: "#22c55e", good: "#84cc16", neutral: "#eab308",
+  sad: "#f97316",   stressed: "#ef4444",
 };
 
 export default function MoodCalendarView({ moodLogs, onLogMood }: Props) {
@@ -29,7 +29,7 @@ export default function MoodCalendarView({ moodLogs, onLogMood }: Props) {
   const [logStatus, setLogStatus] = useState<"idle" | "success" | "error">("idle");
 
   const today = new Date().toISOString().split("T")[0];
-  const alreadyLoggedToday = moodLogs.some((m) => m.logged_at === today);
+  const alreadyLoggedToday = moodLogs.some((m) => m.logged_date === today);
 
   const handleLog = async () => {
     if (!selectedMood) return;
@@ -51,7 +51,7 @@ export default function MoodCalendarView({ moodLogs, onLogMood }: Props) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split("T")[0];
-    const log = moodLogs.find((m) => m.logged_at === dateStr);
+    const log = moodLogs.find((m) => m.logged_date === dateStr);
     days.push({ date: dateStr, dayNum: d.getDate(), mood: log?.mood });
   }
 

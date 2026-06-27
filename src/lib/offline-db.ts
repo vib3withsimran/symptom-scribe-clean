@@ -1,6 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import { supabase } from "@/integrations/supabase/client";
-import { type Json, type TablesInsert } from "@/integrations/supabase/types";
+import { type Json } from "@/integrations/supabase/types";
 import {
   encryptText,
   decryptText,
@@ -110,27 +110,6 @@ export async function encryptSymptom(
     ];
   }
   return encrypted;
-}
-
-function toHealthMetricInsert(record: OfflineMetric): TablesInsert<"health_metrics"> {
-  const { pending_sync: _pendingSync, pending_delete: _pendingDelete, ...supabaseData } = record;
-  return supabaseData;
-}
-
-function toSymptomHistoryInsert(record: OfflineSymptom): TablesInsert<"symptom_history"> {
-  return {
-    id: record.id,
-    user_id: record.user_id,
-    symptoms: record.symptoms,
-    ai_analysis: record.ai_analysis ?? "",
-    severity_level: record.severity_level,
-    possible_causes: record.possible_causes,
-    recommendations: record.recommendations,
-    risk_score: record.risk_score,
-    resolved: record.resolved,
-    created_at: record.created_at,
-    search_tokens: record.search_tokens ?? null,
-  };
 }
 
 export async function decryptSymptom(record: OfflineSymptom, key: CryptoKey): Promise<OfflineSymptom> {
@@ -271,9 +250,10 @@ export const syncOfflineData = async (): Promise<boolean> => {
       .toArray();
 
     for (const record of pendingMetricsInserts) {
+      const { pending_sync, pending_delete, search_tokens: _st_m, ...supabaseData } = record;
       const { error } = await supabase
         .from("health_metrics")
-        .insert(toHealthMetricInsert(record));
+        .insert(supabaseData);
 
       if (!error) {
         await db.healthMetrics.update(record.id, { pending_sync: 0 });
@@ -306,9 +286,10 @@ export const syncOfflineData = async (): Promise<boolean> => {
       .toArray();
 
     for (const record of pendingSymptomInserts) {
+      const { pending_sync, pending_delete, pending_update, search_tokens: _st_s, ...supabaseData } = record;
       const { error } = await supabase
         .from("symptom_history")
-        .insert(toSymptomHistoryInsert(record));
+        .insert(supabaseData);
 
       if (!error) {
         await db.symptomHistory.update(record.id, { pending_sync: 0 });

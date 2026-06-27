@@ -21,6 +21,7 @@ import {
   Brain,
   Utensils,
   BatteryLow,
+  HeartPulse
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -30,6 +31,7 @@ const suggestions = [
   { icon: Brain, label: "I have headache" },
   { icon: Utensils, label: "Stomach pain after eating" },
   { icon: BatteryLow, label: "Feeling tired and dizzy" },
+  { icon: HeartPulse, label: "Chest pain while breathing" },
 ];
 
 interface ISpeechRecognitionEvent extends Event {
@@ -397,39 +399,34 @@ const AIHealthAssistant = () => {
       {/* Chat area */}
       <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         {!hasMessages ? (
-          /* ── Empty state ── */
-          <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6 pb-4 gap-6 text-center">
-            <div className="flex flex-col items-center gap-3 w-full min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          /* ── Welcome state ── */
+          <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6 pb-2 gap-3 text-center">
+            {/* Avatar + heading */}
+            <div className="flex flex-col items-center gap-2 w-full min-w-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+                <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
               <div className="w-full min-w-0 px-2">
-                <h2 className="text-base sm:text-lg font-semibold break-words">
+                <h2 className="text-base sm:text-xl font-semibold break-words">
                   Hello! I'm your AI Health Assistant
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto break-words">
-                  I can help you understand your symptoms and provide health insights.{" "}
-                  <span className="text-teal-500 font-medium">How can I assist you today?</span>
+                <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
+                  Describe your symptoms and get instant health insights.
                 </p>
               </div>
             </div>
 
-            {/* Suggestion list — vertical stacked, all visible */}
-            <div className="w-full max-w-2xl min-w-0">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground px-2 flex-shrink-0">Try asking</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+            {/* Suggestion cards — 2-col compact grid */}
+            <div className="w-full max-w-lg min-w-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {suggestions.map((s) => (
                   <button
                     key={s.label}
                     onClick={() => handleAnalyze(s.label)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-border bg-muted/50 hover:bg-muted hover:border-teal-500/50 transition-all text-left w-full"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent bg-muted/40 hover:bg-muted hover:border-teal-500/50 active:border-teal-500 active:bg-teal-500/5 transition-all text-left w-full"
                   >
                     <s.icon className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{s.label}</span>
+                    <span className="text-sm text-muted-foreground leading-snug">{s.label}</span>
                   </button>
                 ))}
               </div>
@@ -535,7 +532,7 @@ const AIHealthAssistant = () => {
       </div>
 
       {/* Input — pinned at bottom */}
-      <div className="flex-shrink-0 w-full border-t border-border px-3 sm:px-4 py-3 bg-background">
+      <div className="flex-shrink-0 w-full px-3 sm:px-4 py-3 bg-background">
         <div className="max-w-4xl mx-auto w-full min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2 bg-muted border border-border rounded-2xl px-3 sm:px-4 py-2.5 focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all min-h-[48px]">
             {/* Voice button */}
@@ -585,7 +582,7 @@ const AIHealthAssistant = () => {
               onKeyDown={handleKeyDown}
               placeholder={isListening ? "Listening…" : "Describe your symptoms…"}
               rows={1}
-              className="flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none max-h-28 leading-relaxed self-center"
+              className="flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none max-h-28 overflow-y-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden leading-relaxed self-center"
             />
 
             <button

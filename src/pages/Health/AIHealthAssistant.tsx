@@ -387,7 +387,39 @@ const AIHealthAssistant = () => {
   const hasMessages = messages.length > 0 || loading;
 
   return (
-    <div className="flex flex-col h-full w-full max-w-full bg-background text-foreground overflow-hidden">
+    <div className="sticky top-0 flex flex-col h-[calc(100vh-3.5rem-2rem)] w-full max-w-full bg-background text-foreground overflow-hidden">
+      <style>{`
+        .chat-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .chat-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .chat-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(20, 184, 166, 0.35);
+          border-radius: 9999px;
+        }
+        .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(20, 184, 166, 0.6);
+        }
+        .chat-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(20, 184, 166, 0.35) transparent;
+        }
+        @keyframes message-in {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .message-animate {
+          animation: message-in 0.25s ease-out;
+        }
+      `}</style>
       {/* Header */}
       <div className="flex-shrink-0 w-full px-3 sm:px-5 py-3 border-b border-border flex items-center justify-end gap-3">
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -397,20 +429,20 @@ const AIHealthAssistant = () => {
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden chat-scrollbar">
         {!hasMessages ? (
           /* ── Welcome state ── */
           <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6 pb-2 gap-3 text-center">
             {/* Avatar + heading */}
             <div className="flex flex-col items-center gap-2 w-full min-w-0">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-500/20 flex-shrink-0">
                 <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
               <div className="w-full min-w-0 px-2">
-                <h2 className="text-base sm:text-xl font-semibold break-words">
+                <h2 className="text-lg sm:text-2xl font-semibold tracking-tight break-words">
                   Hello! I'm your AI Health Assistant
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-muted-foreground mt-1.5 max-w-md mx-auto leading-relaxed">
                   Describe your symptoms and get instant health insights.
                 </p>
               </div>
@@ -423,9 +455,9 @@ const AIHealthAssistant = () => {
                   <button
                     key={s.label}
                     onClick={() => handleAnalyze(s.label)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-transparent bg-muted/40 hover:bg-muted hover:border-teal-500/50 active:border-teal-500 active:bg-teal-500/5 transition-all text-left w-full"
+                    className="group flex items-center gap-3 px-4 py-3 rounded-xl border border-border/60 bg-muted/30 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-muted/60 hover:border-teal-500/50 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 text-left w-full"
                   >
-                    <s.icon className="w-4 h-4 text-teal-500 flex-shrink-0" />
+                    <s.icon className="w-4 h-4 text-teal-500 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
                     <span className="text-sm text-muted-foreground leading-snug">{s.label}</span>
                   </button>
                 ))}
@@ -438,10 +470,10 @@ const AIHealthAssistant = () => {
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`flex gap-2 sm:gap-3 min-w-0 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2 sm:gap-3 min-w-0 message-animate ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-teal-500/20">
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -449,8 +481,8 @@ const AIHealthAssistant = () => {
                   <div
                     className={`rounded-2xl px-3.5 sm:px-4 py-3 text-sm leading-relaxed relative break-words [overflow-wrap:anywhere] ${
                       msg.role === "user"
-                        ? "bg-teal-500 text-white rounded-br-sm ml-auto"
-                        : `bg-muted text-foreground rounded-bl-sm border border-border transition-all duration-300 ${
+                        ? "bg-teal-500 text-white rounded-br-sm ml-auto shadow-sm shadow-teal-500/20"
+                        : `bg-muted/70 backdrop-blur-sm text-foreground rounded-bl-sm border border-border/60 shadow-sm transition-all duration-300 ${
                             currentlyReadingText === msg.text
                               ? "ring-2 ring-teal-500/30 bg-teal-500/5"
                               : ""
@@ -515,11 +547,11 @@ const AIHealthAssistant = () => {
             ))}
 
             {loading && (
-              <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="flex items-start gap-2 sm:gap-3 min-w-0 message-animate">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-sm shadow-teal-500/20">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-muted border border-border rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
+                <div className="bg-muted/70 backdrop-blur-sm border border-border/60 shadow-sm rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
                   <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0ms]" />
                   <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:150ms]" />
                   <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:300ms]" />
@@ -534,7 +566,7 @@ const AIHealthAssistant = () => {
       {/* Input — pinned at bottom */}
       <div className="flex-shrink-0 w-full px-3 sm:px-4 py-3 bg-background">
         <div className="max-w-4xl mx-auto w-full min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-muted border border-border rounded-2xl px-3 sm:px-4 py-2.5 focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all min-h-[48px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-muted/60 backdrop-blur-md border border-border/60 rounded-2xl px-3 sm:px-4 py-2.5 shadow-sm focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 focus-within:shadow-md transition-all duration-200 min-h-[48px]">
             {/* Voice button */}
             <button
               onClick={handleVoiceInput}
@@ -588,7 +620,7 @@ const AIHealthAssistant = () => {
             <button
               onClick={() => handleAnalyze()}
               disabled={loading || !symptoms.trim() || charCount >= MAX_CHARS}
-              className="w-8 h-8 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all flex-shrink-0 hover:scale-105 active:scale-95"
+              className="w-8 h-8 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow-md hover:shadow-teal-500/30 hover:scale-110 active:scale-90"
               aria-label="Send"
             >
               <Send className="w-3.5 h-3.5 text-white" />

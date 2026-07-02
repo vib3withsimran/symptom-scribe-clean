@@ -170,9 +170,25 @@ const Dashboard = () => {
 
       if (rawSymptoms && rawSymptoms.length > 0) {
         const key = await whenEncryptionReady();
-        const symptoms = await Promise.all(
+
+        const decryptedResults = await Promise.allSettled(
           rawSymptoms.map((s) => decryptSymptom(s as unknown as OfflineSymptom, key))
         );
+
+        const symptoms = decryptedResults
+          .filter(
+            (result): result is PromiseFulfilledResult<OfflineSymptom> =>
+              result.status === "fulfilled"
+          )
+          .map((result) => result.value);
+
+        const failedDecryptions = decryptedResults.filter((result) => result.status === "rejected");
+
+        if (failedDecryptions.length > 0) {
+          console.warn(
+            `Skipped ${failedDecryptions.length} symptom records that could not be decrypted`
+          );
+        }
 
         const unresolved = symptoms.filter((s) => !s.resolved).length;
         const avgRisk = symptoms.reduce((sum, s) => sum + (s.risk_score || 0), 0) / symptoms.length;

@@ -13,12 +13,8 @@ const ALLOWED_ORIGINS = [
 ];
 
 const getCorsHeaders = (origin: string | null) => ({
-  "Access-Control-Allow-Origin":
-    origin && ALLOWED_ORIGINS.includes(origin)
-      ? origin
-      : "null",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : "null",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 });
 
 serve(async (req: Request): Promise<Response> => {
@@ -26,11 +22,7 @@ serve(async (req: Request): Promise<Response> => {
 
   // 1. Origin allowlist check
   if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-    return jsonResponse(
-      { error: "Origin not allowed" },
-      403,
-      getCorsHeaders(origin)
-    );
+    return jsonResponse({ error: "Origin not allowed" }, 403, getCorsHeaders(origin));
   }
 
   // 2. CORS preflight — must come before any auth logic
@@ -43,11 +35,7 @@ serve(async (req: Request): Promise<Response> => {
   // 3. Enforce JWT for all non-OPTIONS requests
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
-    return jsonResponse(
-      { error: "Missing authorization header" },
-      401,
-      getCorsHeaders(origin)
-    );
+    return jsonResponse({ error: "Missing authorization header" }, 401, getCorsHeaders(origin));
   }
 
   const token = authHeader.replace("Bearer ", "");
@@ -56,7 +44,10 @@ serve(async (req: Request): Promise<Response> => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
-  const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseClient.auth.getUser(token);
 
   if (userError || !user) {
     return jsonResponse(
@@ -68,9 +59,7 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const ip =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
+      req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "unknown";
 
     const rateLimitResult = await rateLimit(ip);
 
@@ -115,12 +104,12 @@ serve(async (req: Request): Promise<Response> => {
 
     const safetyCheck = detectEmergencySymptoms(messages);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
+    if (!GEMINI_API_KEY) {
       return jsonResponse(
         {
-          error: "LOVABLE_API_KEY is not configured",
+          error: "GEMINI_API_KEY is not configured",
         },
         500,
         getCorsHeaders(origin)
@@ -162,62 +151,80 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
 ⚠️ Important: This is general health information only. Consult a qualified healthcare provider for diagnosis and treatment.
 `;
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+    const conversationText = messages.map((m) => `${m.role}: ${m.content}`).join("\n");
+
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
+          contents: [
             {
-              role: "system",
-              content: systemPrompt,
+              parts: [
+                {
+                  text: `${systemPrompt}\n\nConversation:\n${conversationText}`,
+                },
+              ],
             },
-            ...messages,
           ],
-          stream: true,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 2048,
+          },
         }),
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
 
-      console.error(
-        "AI gateway error:",
-        response.status,
-        errorText
-      );
+      console.error("Gemini API error:", geminiResponse.status, errorText);
 
       return jsonResponse(
         {
-          error: "AI service error",
-          status: response.status,
+          error: "Gemini API error",
+          status: geminiResponse.status,
         },
-        response.status,
+        geminiResponse.status,
         getCorsHeaders(origin)
       );
     }
 
-    if (!response.body) {
-      return jsonResponse(
-        {
-          error: "Empty AI response body",
-        },
-        500,
-        getCorsHeaders(origin)
-      );
-    }
+    const geminiData = await geminiResponse.json();
 
-    return new Response(response.body, {
+    const aiText =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "Unable to generate analysis.";
+
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      start(controller) {
+        const payload = `data: ${JSON.stringify({
+          choices: [
+            {
+              delta: {
+                content: aiText,
+              },
+            },
+          ],
+        })}\n\n`;
+
+        controller.enqueue(encoder.encode(payload));
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
       status: 200,
       headers: {
         ...getCorsHeaders(origin),
         "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       },
     });
   } catch (error) {
@@ -225,10 +232,7 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
 
     return jsonResponse(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown server error",
+        error: error instanceof Error ? error.message : "Unknown server error",
       },
       500,
       getCorsHeaders(origin)

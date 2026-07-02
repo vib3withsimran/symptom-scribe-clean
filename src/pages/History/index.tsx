@@ -48,123 +48,148 @@ const History = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
-        const searchInput = document.getElementById('symptom-search-input');
+        const searchInput = document.getElementById("symptom-search-input");
         if (searchInput) {
           searchInput.focus();
         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const fetchHistory = useCallback(async (queryText = "") => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const fetchHistory = useCallback(
+    async (queryText = "") => {
+      setLoading(true);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const keys = await whenKeysReady();
-      const searchTokens = queryText ? await generateSearchTokens(queryText, keys.searchKey) : [];
-
-      if (navigator.onLine) {
-        let query = supabase.from("symptom_history").select("*").eq("user_id", user.id);
-        
-        if (severityFilter !== "all") {
-          query = query.eq("severity_level", severityFilter);
-        }
-
-        if (searchTokens.length > 0) {
-          query = query.contains("search_tokens", searchTokens);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        if (data) {
-          if (!queryText && severityFilter === "all") {
-            await db.symptomHistory
-              .where("user_id")
-              .equals(user.id)
-              .filter(
-                (record) =>
-                  record.pending_sync === 0 &&
-                  record.pending_delete === 0 &&
-                  record.pending_update === 0
-              )
-              .delete();
-          }
-
-          const localEntries = data.map((record) => ({
-            id: record.id,
-            user_id: record.user_id,
-            symptoms: record.symptoms || "",
-            severity_level: record.severity_level || "low",
-            possible_causes: record.possible_causes,
-            recommendations: record.recommendations,
-            risk_score: record.risk_score,
-            resolved: !!record.resolved,
-            created_at: record.created_at || new Date().toISOString(),
-            ai_analysis: record.ai_analysis,
-            search_tokens: record.search_tokens,
-            pending_sync: 0,
-            pending_update: 0,
-            pending_delete: 0,
-          }));
-
-          const encryptedEntries = await Promise.all(
-            localEntries.map((entry) => encryptSymptom(entry, keys.encryptionKey, keys.searchKey))
-          );
-
-          await db.symptomHistory.bulkPut(encryptedEntries);
-        }
-      }
-    } catch (error) {
-      console.warn("Error fetching history from Supabase, falling back to local DB:", error);
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
         const keys = await whenKeysReady();
         const searchTokens = queryText ? await generateSearchTokens(queryText, keys.searchKey) : [];
 
-        let localQuery = db.symptomHistory
-          .where("user_id")
-          .equals(user.id)
-          .filter((record) => record.pending_delete === 0);
+        if (navigator.onLine) {
+          let query = supabase.from("symptom_history").select("*").eq("user_id", user.id);
 
-        if (severityFilter !== "all") {
-          localQuery = localQuery.filter((record) => record.severity_level === severityFilter);
+          if (severityFilter !== "all") {
+            query = query.eq("severity_level", severityFilter);
+          }
+
+          if (searchTokens.length > 0) {
+            query = query.contains("search_tokens", searchTokens);
+          }
+
+          const { data, error } = await query;
+          if (error) throw error;
+
+          if (data) {
+            if (!queryText && severityFilter === "all") {
+              await db.symptomHistory
+                .where("user_id")
+                .equals(user.id)
+                .filter(
+                  (record) =>
+                    record.pending_sync === 0 &&
+                    record.pending_delete === 0 &&
+                    record.pending_update === 0
+                )
+                .delete();
+            }
+
+            const localEntries = data.map((record) => ({
+              id: record.id,
+              user_id: record.user_id,
+              symptoms: record.symptoms || "",
+              severity_level: record.severity_level || "low",
+              possible_causes: record.possible_causes,
+              recommendations: record.recommendations,
+              risk_score: record.risk_score,
+              resolved: !!record.resolved,
+              created_at: record.created_at || new Date().toISOString(),
+              ai_analysis: record.ai_analysis,
+              search_tokens: record.search_tokens,
+              pending_sync: 0,
+              pending_update: 0,
+              pending_delete: 0,
+            }));
+
+            const encryptedEntries = await Promise.all(
+              localEntries.map((entry) => encryptSymptom(entry, keys.encryptionKey, keys.searchKey))
+            );
+
+            await db.symptomHistory.bulkPut(encryptedEntries);
+          }
         }
-
-        if (searchTokens.length > 0) {
-          localQuery = localQuery.filter((record) =>
-            record.search_tokens &&
-            searchTokens.every((token) => record.search_tokens!.includes(token))
-          );
-        }
-
-        const localRecords = await localQuery.toArray();
-
-        const decryptedRecords = await Promise.all(
-          localRecords.map((record) => decryptSymptom(record, keys.encryptionKey))
-        );
-
-        decryptedRecords.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setHistory(decryptedRecords as unknown as SymptomEntry[]);
+      } catch (error) {
+        console.warn("Error fetching history from Supabase, falling back to local DB:", error);
       }
-    } catch (err) {
-      console.error("Error loading local symptoms:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [severityFilter]);
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const keys = await whenKeysReady();
+          const searchTokens = queryText
+            ? await generateSearchTokens(queryText, keys.searchKey)
+            : [];
+
+          let localQuery = db.symptomHistory
+            .where("user_id")
+            .equals(user.id)
+            .filter((record) => record.pending_delete === 0);
+
+          if (severityFilter !== "all") {
+            localQuery = localQuery.filter((record) => record.severity_level === severityFilter);
+          }
+
+          if (searchTokens.length > 0) {
+            localQuery = localQuery.filter(
+              (record) =>
+                record.search_tokens &&
+                searchTokens.every((token) => record.search_tokens!.includes(token))
+            );
+          }
+
+          const localRecords = await localQuery.toArray();
+
+          const decryptedResults = await Promise.allSettled(
+            localRecords.map((record) => decryptSymptom(record, keys.encryptionKey))
+          );
+
+          const decryptedRecords = decryptedResults
+            .filter(
+              (result): result is PromiseFulfilledResult<(typeof localRecords)[number]> =>
+                result.status === "fulfilled"
+            )
+            .map((result) => result.value);
+
+          const failedRecords = decryptedResults.filter((result) => result.status === "rejected");
+
+          if (failedRecords.length > 0) {
+            console.warn(
+              `Skipped ${failedRecords.length} symptom records that could not be decrypted`
+            );
+          }
+
+          decryptedRecords.sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setHistory(decryptedRecords as unknown as SymptomEntry[]);
+        }
+      } catch (err) {
+        console.error("Error loading local symptoms:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [severityFilter]
+  );
 
   useEffect(() => {
     const handleOnline = async () => {
@@ -227,10 +252,7 @@ const History = () => {
   const deleteEntry = async (id: string) => {
     try {
       if (navigator.onLine) {
-        const { error } = await supabase
-          .from("symptom_history")
-          .delete()
-          .eq("id", id);
+        const { error } = await supabase.from("symptom_history").delete().eq("id", id);
 
         if (error) throw error;
         await invalidateCache("symptom_history");
@@ -268,9 +290,12 @@ const History = () => {
 
   const getSeverityColor = (severity: string): "default" | "secondary" | "destructive" => {
     switch (severity) {
-      case "high": return "destructive";
-      case "moderate": return "default";
-      default: return "secondary";
+      case "high":
+        return "destructive";
+      case "moderate":
+        return "default";
+      default:
+        return "secondary";
     }
   };
 
@@ -347,7 +372,10 @@ const History = () => {
         <Card>
           <CardContent className="py-14 flex flex-col items-center text-center gap-4">
             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-950">
-              <ClipboardList className="w-8 h-8 text-teal-600 dark:text-teal-400" strokeWidth={1.5} />
+              <ClipboardList
+                className="w-8 h-8 text-teal-600 dark:text-teal-400"
+                strokeWidth={1.5}
+              />
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-foreground">No consultations yet</h3>
@@ -367,12 +395,16 @@ const History = () => {
         <Card>
           <CardContent className="pt-6 text-center space-y-2">
             <p className="text-muted-foreground">
-              No results match your search{isFiltering ? " or filter" : ""}. Try adjusting your criteria.
+              No results match your search{isFiltering ? " or filter" : ""}. Try adjusting your
+              criteria.
             </p>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setSearchQuery(""); setSeverityFilter("all"); }}
+              onClick={() => {
+                setSearchQuery("");
+                setSeverityFilter("all");
+              }}
             >
               Clear filters
             </Button>
@@ -400,9 +432,15 @@ const History = () => {
                       onClick={() => toggleResolved(entry.id, entry.resolved)}
                     >
                       {entry.resolved ? (
-                        <><X className="w-4 h-4 mr-1" />Reopen</>
+                        <>
+                          <X className="w-4 h-4 mr-1" />
+                          Reopen
+                        </>
                       ) : (
-                        <><CheckCircle className="w-4 h-4 mr-1" />Resolve</>
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Resolve
+                        </>
                       )}
                     </Button>
                     <AlertDialog>

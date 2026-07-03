@@ -103,7 +103,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+      <div className="flex h-14 items-center justify-between px-4 border-b border-border">
         <NavLink to="/" className="flex items-center" onClick={handleNavClick}>
           {!isCollapsed && (
             <h2 className="text-lg font-semibold text-sidebar-foreground cursor-pointer">
@@ -126,17 +126,10 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             {/* ✨ updated: small gap between rows so the tinted active state has breathing room */}
-            <SidebarMenu className="gap-1 px-1">
+            <SidebarMenu className="px-1">
               {menuItems.map((item, index) => (
                 <>
-                  {/* ✨ new: thin divider before "Brain Games" and before "Settings"
-                      to visually group related items — purely decorative, no logic change */}
-                  {(item.title === "Brain Games" || item.title === "Settings") && (
-                    <div
-                      key={`divider-${item.title}`}
-                      className="my-1 mx-2 border-t border-sidebar-border/60"
-                    />
-                  )}
+                  
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="py-2">
                       <NavLink to={item.url} end className={getNavCls} onClick={handleNavClick}>

@@ -22,12 +22,6 @@ export function useMetricsHistory(userId: string | null) {
           const { data, error } = await getCachedData<OfflineMetric[]>("health_metrics");
 
           if (!error && data) {
-            await db.healthMetrics
-              .where("user_id")
-              .equals(userId)
-              .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
-              .delete();
-
             const localEntries = data.map((record) => ({
               id: record.id,
               user_id: record.user_id,
@@ -44,6 +38,25 @@ export function useMetricsHistory(userId: string | null) {
             );
 
             await db.healthMetrics.bulkPut(encryptedEntries);
+
+            const remoteIds = new Set(data.map((record) => record.id));
+            const CACHE_STALENESS_MS = 5 * 60 * 1000; // matches get-cached-data TTL
+            const staleCutoff = Date.now() - CACHE_STALENESS_MS;
+
+            const existingSynced = await db.healthMetrics
+              .where("user_id")
+              .equals(userId)
+              .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
+              .toArray();
+
+            const idsToRemove = existingSynced
+              .filter((record) => !remoteIds.has(record.id))
+              .filter((record) => new Date(record.recorded_at).getTime() < staleCutoff)
+              .map((record) => record.id);
+
+            if (idsToRemove.length > 0) {
+              await db.healthMetrics.bulkDelete(idsToRemove);
+            }
           }
         } catch (err) {
           console.warn("Failed to fetch from Supabase, falling back to local DB:", err);

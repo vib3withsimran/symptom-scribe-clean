@@ -19,15 +19,9 @@ export function useMetricsHistory(userId: string | null) {
 
       if (navigator.onLine) {
         try {
-          const { data, error } = await getCachedData<OfflineMetric[]>("health_metrics");
+          const { data, cachedAt, error } = await getCachedData<OfflineMetric[]>("health_metrics");
 
           if (!error && data) {
-            await db.healthMetrics
-              .where("user_id")
-              .equals(userId)
-              .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
-              .delete();
-
             const localEntries = data.map((record) => ({
               id: record.id,
               user_id: record.user_id,
@@ -44,6 +38,25 @@ export function useMetricsHistory(userId: string | null) {
             );
 
             await db.healthMetrics.bulkPut(encryptedEntries);
+            if (cachedAt) {
+              const snapshotTime = new Date(cachedAt).getTime();
+              const remoteIds = new Set(data.map((record) => record.id));
+
+              const existingSynced = await db.healthMetrics
+                .where("user_id")
+                .equals(userId)
+                .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
+                .toArray();
+
+              const idsToRemove = existingSynced
+                .filter((record) => !remoteIds.has(record.id))
+                .filter((record) => new Date(record.recorded_at).getTime() < snapshotTime)
+                .map((record) => record.id);
+
+              if (idsToRemove.length > 0) {
+                await db.healthMetrics.bulkDelete(idsToRemove);
+              }
+            }
           }
         } catch (err) {
           console.warn("Failed to fetch from Supabase, falling back to local DB:", err);

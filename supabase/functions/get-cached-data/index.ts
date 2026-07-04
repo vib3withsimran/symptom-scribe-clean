@@ -113,6 +113,7 @@ serve(async (req) => {
 
     if (cachedData) {
       console.log(`Cache hit for ${cacheKey}`);
+      // cachedData already has the { data, cachedAt } shape written below.
       return new Response(cachedData, {
         status: 200,
         headers: {
@@ -148,9 +149,17 @@ serve(async (req) => {
       dbData = data;
     }
 
-    const jsonString = JSON.stringify(dbData);
+    const cachedAt = new Date().toISOString();
+    const responseBody = { data: dbData, cachedAt };
+    const jsonString = JSON.stringify(responseBody);
 
-    // Save to Redis Cache (TTL = 300 seconds)
+    // Save to Redis Cache (TTL = 300 seconds).
+    // We store `cachedAt` alongside the data itself so that any client
+    // reading this snapshot later (possibly minutes from now, up until the
+    // TTL expires) can tell exactly how old the snapshot is, rather than
+    // having to guess based on a duplicated TTL constant or the record's
+    // own timestamp (which says nothing about when this cache entry was
+    // generated).
     if (redis && dbData !== null) {
       try {
         await redis.set(cacheKey, jsonString, { ex: 300 });

@@ -160,9 +160,6 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
 
     const conversationText = messages.map((m) => `${m.role}: ${m.content}`).join("\n");
 
-    // Use the *streaming* Gemini endpoint (alt=sse) instead of generateContent,
-    // so the client can render tokens as they arrive rather than waiting for
-    // the entire response to finish generating before seeing anything.
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
       {
@@ -206,7 +203,6 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
-   
     function extractTextChunks(parsed: unknown): string[] {
       const candidate = (parsed as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
         ?.candidates?.[0];
@@ -214,9 +210,12 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
       return parts.map((p) => p?.text).filter((t): t is string => Boolean(t));
     }
 
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = geminiResponse.body!.getReader();
+        const localReader = geminiResponse.body!.getReader();
+        reader = localReader;
         let buffer = "";
         let closed = false;
 
@@ -248,7 +247,7 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
 
         try {
           while (true) {
-            const { done, value } = await reader.read();
+            const { done, value } = await localReader.read();
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
@@ -264,8 +263,6 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch (streamErr) {
           console.error("Error while relaying Gemini stream:", streamErr);
-          // Let the client distinguish "generation finished" from
-          // "generation broke midway" instead of only ever seeing [DONE].
           const errorPayload = `data: ${JSON.stringify({
             error: "Stream interrupted while generating the response.",
           })}\n\n`;
@@ -277,7 +274,7 @@ You MUST set the Severity Level to High, and strongly advise immediate professio
       },
       cancel(reason) {
         try {
-          reader.cancel(reason);
+          reader?.cancel(reason);
         } catch {
           // reader may already be closed/released — safe to ignore.
         }

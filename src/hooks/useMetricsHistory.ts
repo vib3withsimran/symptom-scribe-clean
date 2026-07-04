@@ -19,7 +19,7 @@ export function useMetricsHistory(userId: string | null) {
 
       if (navigator.onLine) {
         try {
-          const { data, error } = await getCachedData<OfflineMetric[]>("health_metrics");
+          const { data, cachedAt, error } = await getCachedData<OfflineMetric[]>("health_metrics");
 
           if (!error && data) {
             const localEntries = data.map((record) => ({
@@ -38,24 +38,24 @@ export function useMetricsHistory(userId: string | null) {
             );
 
             await db.healthMetrics.bulkPut(encryptedEntries);
+            if (cachedAt) {
+              const snapshotTime = new Date(cachedAt).getTime();
+              const remoteIds = new Set(data.map((record) => record.id));
 
-            const remoteIds = new Set(data.map((record) => record.id));
-            const CACHE_STALENESS_MS = 5 * 60 * 1000; // matches get-cached-data TTL
-            const staleCutoff = Date.now() - CACHE_STALENESS_MS;
+              const existingSynced = await db.healthMetrics
+                .where("user_id")
+                .equals(userId)
+                .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
+                .toArray();
 
-            const existingSynced = await db.healthMetrics
-              .where("user_id")
-              .equals(userId)
-              .filter((record) => record.pending_sync === 0 && record.pending_delete === 0)
-              .toArray();
+              const idsToRemove = existingSynced
+                .filter((record) => !remoteIds.has(record.id))
+                .filter((record) => new Date(record.recorded_at).getTime() < snapshotTime)
+                .map((record) => record.id);
 
-            const idsToRemove = existingSynced
-              .filter((record) => !remoteIds.has(record.id))
-              .filter((record) => new Date(record.recorded_at).getTime() < staleCutoff)
-              .map((record) => record.id);
-
-            if (idsToRemove.length > 0) {
-              await db.healthMetrics.bulkDelete(idsToRemove);
+              if (idsToRemove.length > 0) {
+                await db.healthMetrics.bulkDelete(idsToRemove);
+              }
             }
           }
         } catch (err) {

@@ -6,13 +6,18 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:8080",
   "https://symptom-scribe.vercel.app",
+  "https://symptom-scribe-clean.netlify.app",
 ];
+
+const NETLIFY_PREVIEW_ORIGIN = /^https:\/\/deploy-preview-\d+--symptom-scribe-clean\.netlify\.app$/;
+
+function isAllowedOrigin(origin: string): boolean {
+  return ALLOWED_ORIGINS.includes(origin) || NETLIFY_PREVIEW_ORIGIN.test(origin);
+}
 
 const getCorsHeaders = (origin: string | null) => ({
   "Access-Control-Allow-Origin":
-    origin && ALLOWED_ORIGINS.includes(origin)
-      ? origin
-      : ALLOWED_ORIGINS[0],
+    origin && isAllowedOrigin(origin) ? origin : "null",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 });
@@ -20,7 +25,7 @@ const getCorsHeaders = (origin: string | null) => ({
 serve(async (req) => {
   const origin = req.headers.get("origin");
 
-  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && !isAllowedOrigin(origin)) {
     return new Response(
       JSON.stringify({ error: "Origin not allowed" }),
       {
@@ -72,6 +77,7 @@ serve(async (req) => {
     }
 
     // 1. Get user details from the client-provided token to identify who is making the request
+    const token = authHeader.replace("Bearer ", "");
     const client = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -82,10 +88,15 @@ serve(async (req) => {
       }
     );
 
+    // NOTE: passing the Authorization header into `global.headers` only
+    // affects this client's outgoing REST calls — it does not populate a
+    // session for auth.getUser() to read. The token must be passed
+    // explicitly, or this always fails with "Auth session missing" even for
+    // a valid JWT, matching the pattern already used in delete-account.
     const {
       data: { user },
       error: userError,
-    } = await client.auth.getUser();
+    } = await client.auth.getUser(token);
 
     if (userError || !user) {
       return new Response(

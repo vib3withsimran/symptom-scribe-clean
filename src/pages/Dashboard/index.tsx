@@ -9,7 +9,7 @@ import CountUp from "react-countup";
 import CardSkeleton from "@/components/ui/CardSkeleton";
 import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
-import { whenEncryptionReady } from "@/lib/encryption";
+import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
 
 interface Stats {
   totalSymptoms: number;
@@ -162,19 +162,32 @@ const Dashboard = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      const { data: profile } = await supabase
+       if (!user) {
+        setLoading(false);
+        return;
+      }
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (profile?.full_name) {
-        setUserName(profile.full_name);
+        const key = await whenEncryptionReady();
+
+        try {
+          const decryptedFullName = await decryptProfileField(
+            profile.full_name,
+            key
+          );
+
+          setUserName(decryptedFullName);
+        } catch (err) {
+          console.error("Full name decryption failed", err);
+        }
       }
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+         
+    
 
       const { data: rawSymptoms, source } = await fetchSymptomHistory(user.id);
 

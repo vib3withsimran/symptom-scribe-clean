@@ -100,6 +100,17 @@ function mockCachedSymptoms(data: unknown[] | null, error: unknown = null) {
 function mockAuthUser(user: typeof mockUser | null = mockUser) {
   (supabase.auth.getUser as Mock).mockResolvedValue({ data: { user } });
 }
+(supabase.from as Mock).mockReturnValue({
+    select: () => ({
+      eq: () => ({
+        maybeSingle: () =>
+          Promise.resolve({
+            data: { full_name: "User" },
+          }),
+      }),
+    }),
+  });
+
 
 // ---------------------------------------------------------------------------
 // Sample fixture data

@@ -9,7 +9,7 @@ import CountUp from "react-countup";
 import CardSkeleton from "@/components/ui/CardSkeleton";
 import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
-import { whenEncryptionReady } from "@/lib/encryption";
+import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
 
 interface Stats {
   totalSymptoms: number;
@@ -151,6 +151,7 @@ const Dashboard = () => {
   });
   const [recentHistory, setRecentHistory] = useState<SymptomHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("User");
 
   useEffect(() => {
     fetchDashboardData();
@@ -161,10 +162,32 @@ const Dashboard = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
+       if (!user) {
         setLoading(false);
         return;
       }
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profile?.full_name) {
+        const key = await whenEncryptionReady();
+
+        try {
+          const decryptedFullName = await decryptProfileField(
+            profile.full_name,
+            key
+          );
+
+          setUserName(decryptedFullName);
+        } catch (err) {
+          console.error("Full name decryption failed", err);
+        }
+      }
+         
+    
 
       const { data: rawSymptoms, source } = await fetchSymptomHistory(user.id);
 
@@ -260,6 +283,22 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <Card className="border bg-gradient-to-r from-blue-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <CardContent className="flex items-center justify-between py-6">
+          <div>
+            <h2 className="text-3xl font-bold">
+              Welcome, <span className="text-blue-600">{userName}</span>
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              Advanced analytics & personalized health insights
+            </p>
+          </div>
+
+          <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
+            <Activity className="h-7 w-7 text-blue-600" />
+          </div>
+        </CardContent>
+      </Card>
       <div>
         <h1 className="text-3xl font-bold text-foreground">Health Dashboard</h1>
         <p className="text-muted-foreground">Overview of your health tracking journey</p>

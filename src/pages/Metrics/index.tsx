@@ -140,7 +140,8 @@ const MetricsChartSkeleton = () => (
 
 const Metrics = () => {
   const chartRef = useRef<HTMLDivElement>(null);
-  
+  const recordFormRef = useRef<HTMLDivElement>(null);
+
   const downloadChart = async () => {
     if (!chartRef.current) return;
     const dataUrl = await toPng(chartRef.current);
@@ -386,6 +387,11 @@ const Metrics = () => {
   
   const isBloodPressure = historyMetricFilter === "blood_pressure";
 
+  const handleMetricCardSelect = (value: string) => {
+    setMetricType(value);
+    recordFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -406,13 +412,24 @@ const Metrics = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {metricTypes.map((metric) => {
           const Icon = metric.icon;
+          const isSelected = metricType === metric.value;
           return (
             <Card
               key={metric.value}
-              className={`cursor-pointer transition-all hover-scale ${
-                metricType === metric.value ? "border-primary bg-accent" : ""
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              aria-label={`Select ${metric.label} to record a new measurement`}
+              className={`cursor-pointer transition-all hover-scale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                isSelected ? "border-primary bg-accent" : ""
               }`}
-              onClick={() => setMetricType(metric.value)}
+              onClick={() => handleMetricCardSelect(metric.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleMetricCardSelect(metric.value);
+                }
+              }}
             >
               <CardContent className="pt-6 text-center">
                 <Icon className="w-8 h-8 mx-auto mb-2 text-primary" />
@@ -423,7 +440,7 @@ const Metrics = () => {
         })}
       </div>
 
-      <Card className="mt-8">
+      <Card className="mt-8" ref={recordFormRef}>
         <CardHeader>
           <CardTitle>Record New Measurement</CardTitle>
           <CardDescription>Enter your latest health metrics</CardDescription>

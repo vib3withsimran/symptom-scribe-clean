@@ -10,6 +10,7 @@ import CardSkeleton from "@/components/ui/CardSkeleton";
 import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
 import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
+import {motion} from "framer-motion";
 
 interface Stats {
   totalSymptoms: number;
@@ -306,62 +307,143 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="group relative overflow-hidden border border-border/60 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/20">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+           <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[450%] transition-all duration-1000" />
+           </div>
+          <div className="absolute inset-0 rounded-lg ring-1 ring-transparent group-hover:ring-primary/30 transition-all duration-500 pointer-events-none" />
+           <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Consultations</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <motion.div
+              whileHover={{
+                rotate: 15,
+                scale: 1.15,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 15,
+              }}
+              className="rounded-full p-2 bg-primary/10">
+              <Activity className="h-4 w-4 text-primary" />
+            </motion.div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative z-10">
             <div className="text-2xl font-bold">
               <CountUp end={stats.totalSymptoms} duration={1.2} />
             </div>
-            <p className="text-xs text-muted-foreground">Lifetime symptom checks</p>
+            <p className="text-xs text-muted-foreground">
+              Lifetime symptom checks
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Issues</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+        <Card className="group relative overflow-hidden border border-border/60 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/20">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[450%] transition-all duration-1000" />
+        </div>
+        <div className="absolute inset-0 rounded-lg ring-1 ring-transparent group-hover:ring-primary/30 transition-all duration-500 pointer-events-none" />
+
+        <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Active Issues</CardTitle>
+          <motion.div
+            whileHover={{
+              rotate: 15,
+              scale: 1.15,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 15,
+            }}
+            className="rounded-full p-2 bg-primary/10">
+            <AlertCircle className="h-4 w-4 text-primary" />
+          </motion.div>
+        </CardHeader>
+
+        <CardContent className="relative z-10">
+          <div className="text-2xl font-bold">
+            <CountUp end={stats.unresolvedSymptoms} duration={1.2} />
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Requiring follow-up
+          </p>
+        </CardContent>
+      </Card>
+
+        <Card className="group relative overflow-hidden border border-border/60 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/20">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[450%] transition-all duration-1000" />
+        </div>
+
+        <div className="absolute inset-0 rounded-lg ring-1 ring-transparent group-hover:ring-primary/30 transition-all duration-500 pointer-events-none" />
+        <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Overall Wellness</CardTitle>
+          <motion.div
+            whileHover={{ rotate: 15, scale: 1.15 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 15,
+            }}
+            className="rounded-full p-2 bg-primary/10">
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </motion.div>
+        </CardHeader>
+
+        <CardContent className="relative z-10 flex items-center justify-between gap-4 pt-1">
+          <div className="space-y-1">
             <div className="text-2xl font-bold">
-              <CountUp end={stats.unresolvedSymptoms} duration={1.2} />
+              <CountUp end={100 - stats.avgRiskScore} duration={1.2} />%
             </div>
-            <p className="text-xs text-muted-foreground">Requiring follow-up</p>
-          </CardContent>
-        </Card>
 
-        <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overall Wellness</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4 pt-1">
-            <div className="space-y-1">
-              <div className="text-2xl font-bold">
-                <CountUp end={100 - stats.avgRiskScore} duration={1.2} />%
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Avg Risk: <span className="font-semibold">{stats.avgRiskScore}/100</span>
-              </p>
-            </div>
-            <RadialWellnessGauge score={100 - stats.avgRiskScore} />
-          </CardContent>
-        </Card>
+            <p className="text-xs text-muted-foreground">
+              Avg Risk:
+              <span className="font-semibold">
+                {" "}
+                {stats.avgRiskScore}/100
+              </span>
+            </p>
+          </div>
+          <RadialWellnessGauge score={100 - stats.avgRiskScore} />
+        </CardContent>
+      </Card>
 
-        <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              <CountUp end={stats.recentActivity} duration={1.2} />
-            </div>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
-          </CardContent>
-        </Card>
+        <Card className="group relative overflow-hidden border border-border/60 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/20">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[450%] transition-all duration-1000" />
+        </div>
+        <div className="absolute inset-0 rounded-lg ring-1 ring-transparent group-hover:ring-primary/30 transition-all duration-500 pointer-events-none" />
+
+        <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+          <motion.div
+            whileHover={{ rotate: 15, scale: 1.15 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 15,
+            }}
+            className="rounded-full p-2 bg-primary/10">
+            <CheckCircle className="h-4 w-4 text-primary" />
+          </motion.div>
+        </CardHeader>
+
+        <CardContent className="relative z-10">
+          <div className="text-2xl font-bold">
+            <CountUp end={stats.recentActivity} duration={1.2} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Last 7 days
+          </p>
+        </CardContent>
+
+      </Card>
       </div>
 
       <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">

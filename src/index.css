@@ -328,7 +328,7 @@ body,
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-  border: 1px solid rgb(255 255 255 / 0.05);
+  border-color: hsl(var(--border));
 
   box-shadow:
       0 6px 18px rgb(0 0 0 / .08),
@@ -354,7 +354,7 @@ body,
       0 12px 28px rgb(0 0 0 /.12),
       inset 0 1px 0 rgb(255 255 255 /.05);
 
-  border-color: rgb(255 255 255 /.10);
+  border-color: hsl(var(--primary)/1);
 }
 
 /* Sidebar */

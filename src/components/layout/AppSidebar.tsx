@@ -120,18 +120,18 @@ export function AppSidebar() {
             {/* ✨ updated: small gap between rows so the tinted active state has breathing room */}
             <SidebarMenu className="px-1">
               {menuItems.map((item) => {
-                // Active tab gets a tinted pill + left accent border. Inactive
-                // items use a subtle neutral hover fade (like the Sign Out
-                // button's transition-colors), distinct from the active accent.
+                // Existing hover/animation is preserved verbatim; the active-tab
+                // styling (tinted pill + left accent border) is only appended for
+                // the current route.
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      className={`py-2 rounded-md transition-colors${
+                      className={`py-2 transition-all duration-300 ease-in-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-md${
                         isActive
-                          ? " bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-sidebar-ring"
-                          : " hover:!bg-sidebar-foreground/5"
+                          ? " bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-sidebar-ring rounded-md"
+                          : ""
                       }`}
                     >
                       <NavLink to={item.url} end onClick={handleNavClick}>

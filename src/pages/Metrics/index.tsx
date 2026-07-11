@@ -55,6 +55,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -140,7 +147,6 @@ const MetricsChartSkeleton = () => (
 
 const Metrics = () => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const recordFormRef = useRef<HTMLDivElement>(null);
 
   const downloadChart = async () => {
     if (!chartRef.current) return;
@@ -157,6 +163,7 @@ const Metrics = () => {
   const [diastolic, setDiastolic] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const { toast } = useToast();
   const [historyUserId, setHistoryUserId] = useState("");
 
@@ -333,6 +340,7 @@ const Metrics = () => {
       setSystolic("");
       setDiastolic("");
       setNotes("");
+      closeForm();
 
       refresh();
     } catch (error) {
@@ -387,10 +395,25 @@ const Metrics = () => {
   
   const isBloodPressure = historyMetricFilter === "blood_pressure";
 
-  const handleMetricCardSelect = (value: string) => {
-    setMetricType(value);
-    recordFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleMetricCardSelect = (metric: string) => {
+    // Reset any previous entry so each card opens a clean form
+    setMetricType(metric);
+    setValue("");
+    setSystolic("");
+    setDiastolic("");
+    setNotes("");
+    setFormOpen(true);
   };
+
+  const closeForm = () => {
+    setFormOpen(false);
+    // Clear after the close animation so the card highlight resets without the
+    // modal contents visibly flipping mid-fade.
+    window.setTimeout(() => setMetricType(""), 200);
+  };
+
+  const selectedMetric = metricTypes.find((m) => m.value === metricType);
+  const SelectedIcon = selectedMetric?.icon;
 
   return (
     <div className="space-y-6">
@@ -440,93 +463,74 @@ const Metrics = () => {
         })}
       </div>
 
-      <Card className="mt-8" ref={recordFormRef}>
-        <CardHeader>
-          <CardTitle>Record New Measurement</CardTitle>
-          <CardDescription>Enter your latest health metrics</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Dialog open={formOpen} onOpenChange={(open) => (open ? setFormOpen(true) : closeForm())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {SelectedIcon && <SelectedIcon className="w-5 h-5 text-primary" />}
+              Record {selectedMetric?.label ?? "Measurement"}
+            </DialogTitle>
+            <DialogDescription>Enter your latest reading below.</DialogDescription>
+          </DialogHeader>
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Metric Type</Label>
-              <Select value={metricType} onValueChange={setMetricType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select metric type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {metricTypes.map((metric) => (
-                    <SelectItem key={metric.value} value={metric.value}>
-                      {metric.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {metricType && (
-              <>
-                {metricType === "blood_pressure" ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="systolic">Systolic</Label>
-                      <Input
-                        id="systolic"
-                        type="number"
-                        placeholder="120"
-                        value={systolic}
-                        onChange={(e) => setSystolic(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="diastolic">Diastolic</Label>
-                      <Input
-                        id="diastolic"
-                        type="number"
-                        placeholder="80"
-                        value={diastolic}
-                        onChange={(e) => setDiastolic(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="value">
-                      Value (
-                      {metricTypes.find((m) => m.value === metricType)?.unit})
-                    </Label>
-                    <Input
-                      id="value"
-                      type="number"
-                      step="0.1"
-                      placeholder="Enter value"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      required
-                    />
-                  </div>
-                )}
-
+            {metricType === "blood_pressure" ? (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Label htmlFor="systolic">Systolic</Label>
                   <Input
-                    id="notes"
-                    type="text"
-                    placeholder="Any additional notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
+                    id="systolic"
+                    type="number"
+                    placeholder="120"
+                    value={systolic}
+                    onChange={(e) => setSystolic(e.target.value)}
+                    required
                   />
                 </div>
-
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Saving..." : "Record Metric"}
-                </Button>
-              </>
+                <div className="space-y-2">
+                  <Label htmlFor="diastolic">Diastolic</Label>
+                  <Input
+                    id="diastolic"
+                    type="number"
+                    placeholder="80"
+                    value={diastolic}
+                    onChange={(e) => setDiastolic(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="value">Value ({selectedMetric?.unit})</Label>
+                <Input
+                  id="value"
+                  type="number"
+                  step="0.1"
+                  placeholder="Enter value"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  required
+                />
+              </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Input
+                id="notes"
+                type="text"
+                placeholder="Any additional notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Saving..." : "Record Metric"}
+            </Button>
           </form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

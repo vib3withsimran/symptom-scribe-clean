@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { type SmartAlert, dismissAlert, detectSmartAlerts } from "@/lib/alerts-engine";
 import { db, type OfflineMetric, type OfflineSymptom, decryptMetric } from "@/lib/offline-db";
 import { whenEncryptionReady } from "@/lib/encryption";
-import { AlertCircle, AlertTriangle, Info, X, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, AlertTriangle, Info, X, ChevronDown, ChevronUp, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SmartAlertsBannerProps {
@@ -54,7 +54,28 @@ export function SmartAlertsBanner({ userId, symptoms }: SmartAlertsBannerProps) 
     setExpandedAlert(expandedAlert === id ? null : id);
   };
 
-  if (alerts.length === 0) return null;
+  if (alerts.length === 0) {
+    return (
+      <div className="space-y-3 mb-6 select-none">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-500" /> Smart Health Alerts (0)
+          </h3>
+        </div>
+        <div className="rounded-xl border bg-emerald-500/10 dark:bg-emerald-500/5 border-emerald-500/30 p-4 shadow-sm flex items-center gap-3">
+          <div className="p-1.5 rounded-lg bg-emerald-500/15">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-foreground leading-none">All Systems Clear</h4>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              No abnormal physiological trends or symptom warnings have been detected.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 mb-6">

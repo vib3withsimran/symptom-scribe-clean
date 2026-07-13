@@ -110,6 +110,23 @@ const Index = () => {
       desc: "Receive personalized health recommendations and know when to seek professional care.",
     },
   ];
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    const headerOffset = 90;
+
+    const y =
+      element.getBoundingClientRect().top +
+      window.pageYOffset -
+      headerOffset;
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -138,6 +155,37 @@ const Index = () => {
   </span>
 </div>
           <div className="hidden md:flex items-center gap-4">
+            <nav className="flex items-center gap-6 mx-6">
+            <button onClick={()=>scrollToSection("features")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              Features
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            <button onClick={()=>scrollToSection("how-it-works")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              How It Works
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            <button onClick={()=>scrollToSection("why-choose")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              Why Choose Us
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            <button onClick={()=>scrollToSection("reviews")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              Reviews
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            <button onClick={()=>scrollToSection("faq")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              FAQ
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            <button onClick={()=>scrollToSection("contact")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+              Contact
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+            </button>
+          </nav>
             <AnimatedThemeToggler />
             {session ? (
               <Button
@@ -207,7 +255,7 @@ const Index = () => {
       <Hero />
       
       {/* Features Section */}
-      <section className="container mx-auto py-14 md:py-16 px-4">
+      <section id="features" className="container mx-auto py-14 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -254,7 +302,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-muted py-20 px-3 overflow-hidden">
+      <section id="how-it-works" className="bg-muted pt-20 px-3 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -332,7 +380,7 @@ const Index = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="container mx-auto py-20 px-4">
+      <section id="why-choose" className="container mx-auto py-20 px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -410,7 +458,7 @@ const Index = () => {
       </section>
 
           {/* Testimonials Section */}
-      <section className="bg-muted py-20 px-4">
+      <section id="reviews" className="bg-muted py-20 px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -552,7 +600,7 @@ const Index = () => {
           </p>
         </motion.div>
       </section>
-      <footer className="border-t border-border bg-gradient-to-b from-background to-muted/30">
+      <footer id="contact" className="border-t border-border bg-gradient-to-b from-background to-muted/30">
   <div className="container mx-auto px-4 py-12 ">
     <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-10">
       {/* Brand Column */}

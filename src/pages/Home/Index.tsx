@@ -156,28 +156,34 @@ const Index = () => {
 </div>
           <div className="hidden md:flex items-center gap-4">
             <nav className="flex items-center gap-6 mx-6">
-            <button onClick={()=>scrollToSection("features")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("features")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               Features
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
 
-            <button onClick={()=>scrollToSection("how-it-works")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("how-it-works")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               How It Works
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
 
-            <button onClick={()=>scrollToSection("why-choose")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("why-choose")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               Why Choose Us
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
 
-            <button onClick={()=>scrollToSection("reviews")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("reviews")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               Reviews
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
 
-            <button onClick={()=>scrollToSection("faq")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("faq")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               FAQ
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
 
-            <button onClick={()=>scrollToSection("contact")} className="relative text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-primary after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+            <button onClick={()=>scrollToSection("contact")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
               Contact
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
           </nav>
             <AnimatedThemeToggler />

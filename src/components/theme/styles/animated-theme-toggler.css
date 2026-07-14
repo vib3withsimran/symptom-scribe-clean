@@ -5,42 +5,47 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 100%;
   background: transparent;
   border: none;
   cursor: pointer;
   overflow: hidden;
   color: hsl(var(--foreground));
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
+  outline: none;
+  box-shadow: none;
 }
 
 .animated-theme-toggler:hover {
-  background-color: hsl(var(--muted));
+  background-color: transparent;
 }
 
+.animated-theme-toggler:focus,
+.animated-theme-toggler:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+
 .att-icons {
-  position: relative;
   width: 24px;
   height: 24px;
 }
 
 .att-icon {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transform: scale(0.5) rotate(-45deg);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.25s ease-in-out;
+  will-change: opacity;
 }
 
 .att-icon.att-show {
   opacity: 1;
-  transform: scale(1) rotate(0deg);
 }
 
 ::view-transition-old(root),

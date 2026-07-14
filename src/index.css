@@ -341,22 +341,6 @@ body,
       background-color .25s ease;
 }
 
-/* Hover */
-.cosmic .rounded-lg:hover,
-.deep-blue .rounded-lg:hover,
-.forest .rounded-lg:hover,
-.orange .rounded-lg:hover,
-.pastel-pink .rounded-lg:hover{
-
-  transform: translateY(-2px);
-
-  box-shadow:
-      0 12px 28px rgb(0 0 0 /.12),
-      inset 0 1px 0 rgb(255 255 255 /.05);
-
-  border-color: hsl(var(--primary)/1);
-}
-
 /* Sidebar */
 .cosmic aside,
 .deep-blue aside,
@@ -405,22 +389,6 @@ body,
   transition: all .25s ease;
 }
 
-/* Input focus */
-.cosmic input:focus,
-.deep-blue input:focus,
-.forest input:focus,
-.orange input:focus,
-.pastel-pink input:focus,
-
-.cosmic textarea:focus,
-.deep-blue textarea:focus,
-.forest textarea:focus,
-.orange textarea:focus,
-.pastel-pink textarea:focus{
-
-  box-shadow: 0 0 0 3px rgb(255 255 255 /.05);
-}
-
 /* Buttons */
 .cosmic button,
 .deep-blue button,
@@ -432,18 +400,6 @@ body,
       transform .22s ease,
       box-shadow .22s ease,
       opacity .22s ease;
-}
-
-.cosmic button:hover,
-.deep-blue button:hover,
-.forest button:hover,
-.orange button:hover,
-.pastel-pink button:hover{
-
-  transform: translateY(-1px);
-
-  box-shadow:
-      0 8px 18px rgb(0 0 0 /.10);
 }
 
 /* Tables */

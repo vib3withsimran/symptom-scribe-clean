@@ -25,6 +25,7 @@ import {
 
 const Index = () => {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState("features");
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -127,18 +128,59 @@ const Index = () => {
       behavior: "smooth",
     });
   };
+  useEffect(() => {
+  const sections = [
+    "features",
+    "how-it-works",
+    "why-choose",
+    "reviews",
+    "faq",
+    "contact",
+  ];
+  const handleScroll = () => {
+    const scrollPosition = window.scrollY + 120;
+    const bottomReached =
+      window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight - 10;
+
+    if (bottomReached) {
+      setActiveSection("contact");
+      return;
+    }
+
+    for (const section of sections) {
+      const element = document.getElementById(section);
+
+      if (
+        element &&
+        scrollPosition >= element.offsetTop &&
+        scrollPosition < element.offsetTop + element.offsetHeight
+      ) {
+        setActiveSection(section);
+        break;
+      }
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  handleScroll();
+
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
       <header 
-        className={`px-6 py-4 sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled 
-            ? "bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm" 
+        className={`sticky top-0 left-0 w-full px-6 py-1 z-50 ${
+          isScrolled
+            ? "bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm"
             : "bg-background/0 border-transparent"
         }`}
       >
-        <div className="container mx-auto flex items-center justify-between">
+            
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between rounded-2xl border border-border/100 bg-background/80 backdrop-blur-md px-6 py-3 shadow-md">
           <div
   className="flex items-center gap-3 cursor-pointer transition-opacity hover:opacity-80"
   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -146,52 +188,119 @@ const Index = () => {
   <img
     src="/3.png"
     alt="Symptom Scribe Logo"
-    className="h-12 w-12 object-contain shrink-0"
+    className="h-7 w-7 object-contain shrink-0"
   />
 
-  <span className="text-2xl font-bold text-primary">
+  <span className="text-xl font-bold text-primary">
     Symptom Scribe
 
   </span>
 </div>
-          <div className="hidden md:flex items-center gap-4">
-            <nav className="flex items-center gap-6 mx-6">
-            <button onClick={()=>scrollToSection("features")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+          <div className="hidden md:flex items-center gap-3 ml-4">
+            <nav className="flex items-center gap-7 mx-6">
+            <button onClick={()=>scrollToSection("features")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300
+            ${
+            activeSection === "features"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}>
               Features
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 
+              ${
+                activeSection === "features"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`} />
             </button>
 
-            <button onClick={()=>scrollToSection("how-it-works")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+            <button onClick={()=>scrollToSection("how-it-works")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300 
+             ${
+            activeSection === "how-it-works"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}>
               How It Works
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 
+               ${
+                activeSection === "how-it-works"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`}
+              />
             </button>
 
-            <button onClick={()=>scrollToSection("why-choose")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+            <button onClick={()=>scrollToSection("why-choose")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300
+             ${
+            activeSection === "why-choose"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}
+            >
               Why Choose Us
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300
+               ${
+                activeSection === "why-choose"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`}
+              />
             </button>
 
-            <button onClick={()=>scrollToSection("reviews")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+            <button onClick={()=>scrollToSection("reviews")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300 
+             ${
+            activeSection === "reviews"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}
+            >
               Reviews
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 
+                 ${
+                activeSection === "reviews"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`}
+                />
             </button>
 
-            <button onClick={()=>scrollToSection("faq")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+            <button onClick={()=>scrollToSection("faq")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300 
+               ${
+            activeSection === "faq"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}
+              >
               FAQ
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 
+               ${
+                activeSection === "faq"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`}
+              />
             </button>
 
-            <button onClick={()=>scrollToSection("contact")} className="group relative text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary">
+            <button onClick={()=>scrollToSection("contact")} className={`group relative text-sm font-medium text-muted-foreground transition-colors duration-300
+             ${
+            activeSection === "contact"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"}`}
+            >
               Contact
-              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300
+                 ${
+                activeSection === "contact"
+                  ? "w-full"
+                  : "w-0 group-hover:w-full"
+              }`}
+                />
             </button>
           </nav>
+          <div className="flex items-center gap-3 ml-6">
+         <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 hover:bg-primary/10 transition-colors">
             <AnimatedThemeToggler />
+            </div>
+            </div>
             {session ? (
               <Button
                 onClick={() => navigate("/dashboard")}
                 title={displayName}
-                className="gap-2 pl-2"
+                className="h-10 px-5 gap-2"
               >
                 <span className="w-7 h-7 rounded-full bg-primary-foreground/20 flex items-center justify-center font-semibold text-xs">
                   {userInitial}
@@ -200,14 +309,22 @@ const Index = () => {
               </Button>
             ) : (
               <>
-                <Button variant="ghost" onClick={() => navigate("/auth")}>
+                <Button
+                  variant="outline"
+                  className="h-10 px-5 border-primary/30 text-primary hover:bg-primary/5"
+                  onClick={() => navigate("/auth")}
+                >
                   Sign In
                 </Button>
-                <Button onClick={() => navigate("/auth")}>
+                <Button
+                  className="h-10 px-5"
+                  onClick={() => navigate("/auth")}
+                >
                   Get Started
                 </Button>
               </>
             )}
+          </div>
           </div>
 
           <div className="md:hidden">

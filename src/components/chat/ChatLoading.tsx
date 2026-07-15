@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 
 const ChatLoading = () => {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3" role="status" aria-label="AI is typing a response">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center animate-pulse">
         <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
       </div>
@@ -22,6 +22,7 @@ const ChatLoading = () => {
             style={{ animationDelay: "300ms" }}
           />
         </div>
+        <span className="sr-only">AI is typing…</span>
       </div>
     </div>
   );

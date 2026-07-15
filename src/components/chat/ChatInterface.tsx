@@ -435,6 +435,7 @@ const ChatInterface = () => {
                         : "text-muted-foreground hover:text-destructive"
                     }`}
                     title="Delete Session"
+                    aria-label={`Delete session: ${session.title || "Untitled Session"}`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -474,7 +475,7 @@ const ChatInterface = () => {
             onClick={handleNewChat}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow font-semibold"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" aria-hidden="true" />
             New Chat
           </Button>
         </div>
@@ -493,7 +494,7 @@ const ChatInterface = () => {
           <div className="flex items-center gap-2">
             <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Open chat history menu">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
@@ -509,7 +510,7 @@ const ChatInterface = () => {
                     onClick={handleNewChat}
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow font-semibold"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4" aria-hidden="true" />
                     New Chat
                   </Button>
                 </div>
@@ -530,13 +531,18 @@ const ChatInterface = () => {
             onClick={handleNewChat}
             className="text-xs flex items-center gap-1"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
             New
           </Button>
         </header>
 
         {/* Message Panel */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 p-4">
+        <div
+          className="flex-1 min-h-0 overflow-y-auto space-y-4 p-4"
+          role="log"
+          aria-live="polite"
+          aria-label="Chat conversation with AI health assistant"
+        >
           {messages.map((message, index) => (
             <ChatMessage key={index} role={message.role} content={message.content} />
           ))}
@@ -554,6 +560,7 @@ const ChatInterface = () => {
                 onChange={(e) => setInput(e.target.value.slice(0, MAX_CHARS))}
                 onKeyDown={handleKeyPress}
                 placeholder="Describe your symptoms... (e.g., 'I have a sore throat and headache')"
+                aria-label="Describe your symptoms to the AI health assistant"
                 className="min-h-[60px] max-h-[120px] resize-none rounded-xl"
                 disabled={isLoading}
               />
@@ -586,6 +593,7 @@ const ChatInterface = () => {
               disabled={!input.trim() || isLoading}
               size="icon"
               className="h-[60px] w-[60px] flex-shrink-0 rounded-xl"
+              aria-label={isLoading ? "Sending message" : "Send message"}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

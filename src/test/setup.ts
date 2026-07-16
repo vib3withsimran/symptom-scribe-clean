@@ -10,3 +10,12 @@
  * without having to repeat the same setup.
  */
 import "@testing-library/jest-dom";
+
+// Mock ResizeObserver for Recharts / ResponsiveContainer in jsdom environment
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+global.ResizeObserver = ResizeObserverMock;

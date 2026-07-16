@@ -11,6 +11,7 @@ import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
 import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
 import {motion} from "framer-motion";
+import HealthTrendsChart from "@/components/dashboard/HealthTrendsChart";
 
 interface Stats {
   totalSymptoms: number;
@@ -153,6 +154,7 @@ const Dashboard = () => {
   const [recentHistory, setRecentHistory] = useState<SymptomHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("User");
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -167,6 +169,7 @@ const Dashboard = () => {
         setLoading(false);
         return;
       }
+      setUserId(user.id);
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -445,6 +448,8 @@ const Dashboard = () => {
 
       </Card>
       </div>
+
+      <HealthTrendsChart userId={userId} />
 
       <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
         <CardHeader>

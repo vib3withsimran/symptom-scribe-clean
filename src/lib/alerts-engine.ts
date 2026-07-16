@@ -79,7 +79,7 @@ export function detectSmartAlerts(
     // Spike: All of the last 3 readings > 100 bpm
     if (hrValues.every((v) => v > 100)) {
       alerts.push({
-        id: `hr-spike-${latestRecord.id}`,
+        id: `heart-rate-spike-${latestRecord.id}`,
         title: "Elevated Heart Rate Detected",
         description: `Your last 3 heart rate readings show an elevated resting rate averaging ${Math.round(
           hrValues.reduce((a, b) => a + b, 0) / 3
@@ -94,7 +94,7 @@ export function detectSmartAlerts(
     // Low: All of the last 3 readings < 50 bpm
     if (hrValues.every((v) => v < 50 && v > 0)) {
       alerts.push({
-        id: `hr-low-${latestRecord.id}`,
+        id: `heart-rate-low-${latestRecord.id}`,
         title: "Bradycardia Warning",
         description: `Your last 3 heart rate readings indicate a low heart rate averaging ${Math.round(
           hrValues.reduce((a, b) => a + b, 0) / 3
@@ -109,7 +109,7 @@ export function detectSmartAlerts(
     // Increasing trend: hr3 < hr2 < hr1
     if (hrValues[2] < hrValues[1] && hrValues[1] < hrValues[0]) {
       alerts.push({
-        id: `hr-increasing-${latestRecord.id}`,
+        id: `heart-rate-increasing-${latestRecord.id}`,
         title: "Rising Heart Rate Trend",
         description: "Your resting heart rate has risen continuously across your last 3 logs.",
         type: "info",
@@ -130,7 +130,7 @@ export function detectSmartAlerts(
     // High: Systolic > 140 or Diastolic > 90 for all 3
     if (bpValues.every((v) => v.systolic > 140 || v.diastolic > 90)) {
       alerts.push({
-        id: `bp-high-${latestRecord.id}`,
+        id: `blood-pressure-high-${latestRecord.id}`,
         title: "Hypertension Warning",
         description: `Your last 3 blood pressure logs show elevated readings (above 140/90 mmHg).`,
         type: "warning",
@@ -140,10 +140,18 @@ export function detectSmartAlerts(
       });
     }
 
-    // Low: Systolic < 90 or Diastolic < 60 for all 3
-    if (bpValues.every((v) => v.systolic > 0 && v.systolic < 90 || v.diastolic > 0 && v.diastolic < 60)) {
+    // Low: Systolic < 90 or Diastolic < 60 for all 3.
+    // Clinically, either systolic OR diastolic being low is sufficient to diagnose hypotension,
+    // so we evaluate with OR logic. Explicit grouping parentheses added for operator precedence clarity.
+    if (
+      bpValues.every(
+        (v) =>
+          (v.systolic > 0 && v.systolic < 90) ||
+          (v.diastolic > 0 && v.diastolic < 60)
+      )
+    ) {
       alerts.push({
-        id: `bp-low-${latestRecord.id}`,
+        id: `blood-pressure-low-${latestRecord.id}`,
         title: "Hypotension Warning",
         description: `Your last 3 blood pressure readings indicate low blood pressure (below 90/60 mmHg).`,
         type: "warning",
@@ -164,7 +172,7 @@ export function detectSmartAlerts(
     // SpO2 < 95%
     if (oxValues.every((v) => v < 95 && v > 0)) {
       alerts.push({
-        id: `spo2-low-${latestRecord.id}`,
+        id: `oxygen-saturation-low-${latestRecord.id}`,
         title: "Low Oxygen Saturation SpO2",
         description: `Your last 2 blood oxygen readings show SpO2 levels below 95% (${oxValues[0]}%).`,
         type: "critical",
@@ -185,7 +193,7 @@ export function detectSmartAlerts(
     // High: > 180 mg/dL
     if (bsValues.every((v) => v > 180)) {
       alerts.push({
-        id: `sugar-high-${latestRecord.id}`,
+        id: `blood-sugar-high-${latestRecord.id}`,
         title: "Hyperglycemia Alert",
         description: `Your blood glucose has been elevated across your last 3 logs, averaging ${Math.round(
           bsValues.reduce((a, b) => a + b, 0) / 3
@@ -197,10 +205,12 @@ export function detectSmartAlerts(
       });
     }
 
-    // Low: < 70 mg/dL
+    // Low: < 70 mg/dL (hypoglycemia). Checks the latest 2 readings.
+    // Hypoglycemia is critical and requires prompt action, so we trigger the alert
+    // on 2 consecutive low logs rather than waiting for 3 to avoid delaying care.
     if (bsValues.slice(0, 2).every((v) => v < 70 && v > 0)) {
       alerts.push({
-        id: `sugar-low-${latestRecord.id}`,
+        id: `blood-sugar-low-${latestRecord.id}`,
         title: "Hypoglycemia Warning",
         description: `Your blood glucose is critically low (below 70 mg/dL).`,
         type: "critical",
@@ -221,7 +231,7 @@ export function detectSmartAlerts(
     // Fever: > 100.4 °F
     if (tempValues.every((v) => v > 100.4)) {
       alerts.push({
-        id: `temp-fever-${latestRecord.id}`,
+        id: `temperature-fever-${latestRecord.id}`,
         title: "Fever Warning",
         description: `Your body temperature has consistently been above 100.4°F (38°C).`,
         type: "warning",
@@ -247,7 +257,7 @@ export function detectSmartAlerts(
 
     if (recentHighSeverity.length >= 3) {
       alerts.push({
-        id: `symptom-high-burden-${recentHighSeverity[0].id}`,
+        id: `symptom-burden-high-${recentHighSeverity[0].id}`,
         title: "High Symptom Burden",
         description: "You have reported 3 or more high-severity symptoms within the last 7 days.",
         type: "warning",

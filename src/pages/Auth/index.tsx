@@ -72,7 +72,7 @@ const Auth = () => {
       }
 
       if (session) {
-        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        const { data: aalData } = (await supabase.auth.mfa?.getAuthenticatorAssuranceLevel()) ?? { data: null };
         if (aalData && aalData.nextLevel === "aal2" && aalData.currentLevel !== aalData.nextLevel) {
           // 2FA verification still pending — don't navigate yet
           return;
@@ -122,7 +122,7 @@ const Auth = () => {
       showError("Sign In Failed", error.message);
       setLoading(false);
     } else {
-      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      const { data: aalData } = (await supabase.auth.mfa?.getAuthenticatorAssuranceLevel()) ?? { data: null };
 
       if (aalData && aalData.nextLevel === "aal2" && aalData.currentLevel !== aalData.nextLevel) {
         const { data: factorsData } = await supabase.auth.mfa.listFactors();

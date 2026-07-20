@@ -281,7 +281,46 @@ describe("Dashboard", () => {
     });
   });
 
-  // 9. Smart Alerts rendering with metrics
+  // 9. Health Trends Chart rendering
+  it("renders the health trends chart and toggles between filters", async () => {
+    mockAuthUser();
+    mockCachedSymptoms([]);
+
+    mockMetricsArray.value = [
+      {
+        id: "m1",
+        user_id: "test-user-id",
+        metric_type: "heart_rate",
+        value: { value: 72 },
+        recorded_at: new Date().toISOString(),
+        pending_delete: 0,
+      },
+      {
+        id: "m2",
+        user_id: "test-user-id",
+        metric_type: "sleep",
+        value: { value: 7.5 },
+        recorded_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        pending_delete: 0,
+      },
+    ];
+
+    render(<Dashboard />);
+
+    // Verify card title is rendered
+    await waitFor(() => {
+      expect(screen.getByText("Health Trends")).toBeInTheDocument();
+      expect(screen.getByText("Unified rolling 30-day historical health insights")).toBeInTheDocument();
+    });
+
+    // Check that metric toggle buttons are rendered
+    expect(screen.getByRole("button", { name: /All Metrics/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Heart Rate/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Sleep/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Steps/i })).toBeInTheDocument();
+  });
+
+  // 10. Smart Alerts rendering with metrics
   it("renders smart alerts when health metrics show abnormal trends", async () => {
     mockAuthUser();
     mockCachedSymptoms([]);

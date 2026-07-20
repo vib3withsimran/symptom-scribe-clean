@@ -320,4 +320,18 @@ describe("Dashboard", () => {
       expect(screen.getByText("Elevated Heart Rate Detected")).toBeInTheDocument();
     });
   });
+
+  // 10. Weekly Health Score card rendering
+  it("renders weekly health score card and streak badge", async () => {
+    mockAuthUser();
+    mockCachedSymptoms([]);
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Weekly Health Score")).toBeInTheDocument();
+      expect(screen.getByText("Gamified logging consistency & vital stability score")).toBeInTheDocument();
+      expect(screen.getByText("XP Checklist Breakdown")).toBeInTheDocument();
+    });
+  });
 });

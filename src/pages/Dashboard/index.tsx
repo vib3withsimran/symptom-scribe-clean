@@ -12,6 +12,7 @@ import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
 import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
 import { motion } from "framer-motion";
 import { SmartAlertsBanner } from "@/components/dashboard/SmartAlertsBanner";
+import { WeeklyHealthScoreCard } from "@/components/dashboard/WeeklyHealthScoreCard";
 
 interface Stats {
   totalSymptoms: number;
@@ -455,6 +456,8 @@ const Dashboard = () => {
 
         </Card>
       </div>
+
+      <WeeklyHealthScoreCard userId={userId} symptoms={symptoms} />
 
       <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
         <CardHeader>

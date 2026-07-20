@@ -157,6 +157,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("User");
   const [userId, setUserId] = useState<string | null>(null);
+  const [symptoms, setSymptoms] = useState<OfflineSymptom[]>([]);
   const [decryptedSymptomsList, setDecryptedSymptomsList] = useState<string[]>([]);
 
   useEffect(() => {
@@ -240,6 +241,7 @@ const Dashboard = () => {
 
         setRecentHistory(symptoms.slice(0, 5) as unknown as SymptomHistoryRecord[]);
       } else {
+        setSymptoms([]);
         setDecryptedSymptomsList([]);
         setStats({
           totalSymptoms: 0,

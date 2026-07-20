@@ -20,6 +20,7 @@ import {
   setupKeysFromPassword,
   triggerKeyRotation,
 } from "@/lib/encryption";
+import TwoFactorAuth from "@/components/settings/TwoFactorAuth";
 
 const Settings = () => {
   const navigate = useNavigate();

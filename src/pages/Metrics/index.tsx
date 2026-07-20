@@ -27,6 +27,8 @@ import {
   Wind,
   TrendingUp,
   ArrowUpDown,
+  Moon,
+  Footprints,
 } from "lucide-react";
 import type { Json } from "@/integrations/supabase/types";
 import { showSuccess, showError, showWarning, showInfo } from "@/lib/toast-helpers";
@@ -90,6 +92,18 @@ const metricTypes = [
     label: "Oxygen Saturation",
     icon: Wind,
     unit: "%",
+  },
+  {
+    value: "sleep",
+    label: "Sleep Duration",
+    icon: Moon,
+    unit: "hours",
+  },
+  {
+    value: "steps",
+    label: "Daily Steps",
+    icon: Footprints,
+    unit: "steps",
   },
 ];
 

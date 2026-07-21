@@ -7,6 +7,8 @@ import { Activity, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
 import { showError, showInfo } from "@/lib/toast-helpers";
 import CountUp from "react-countup";
 import CardSkeleton from "@/components/ui/CardSkeleton";
+import HealthTrendsChart from "@/components/dashboard/HealthTrendsChart";
+import SymptomPredictions from "@/components/dashboard/SymptomPredictions";
 import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
 import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
@@ -157,6 +159,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("User");
   const [userId, setUserId] = useState<string | null>(null);
   const [symptoms, setSymptoms] = useState<OfflineSymptom[]>([]);
+  const [decryptedSymptomsList, setDecryptedSymptomsList] = useState<string[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -219,6 +222,9 @@ const Dashboard = () => {
           );
         }
 
+        const symptomTexts = symptoms.map((s) => s.symptoms);
+        setDecryptedSymptomsList(symptomTexts);
+
         const unresolved = symptoms.filter((s) => !s.resolved).length;
         const avgRisk = symptoms.reduce((sum, s) => sum + (s.risk_score || 0), 0) / symptoms.length;
 
@@ -237,6 +243,7 @@ const Dashboard = () => {
         setRecentHistory(symptoms.slice(0, 5) as unknown as SymptomHistoryRecord[]);
       } else {
         setSymptoms([]);
+        setDecryptedSymptomsList([]);
         setStats({
           totalSymptoms: 0,
           unresolvedSymptoms: 0,
@@ -457,7 +464,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      <HealthTrendsChart userId={userId} />
+      <SymptomPredictions userId={userId} symptoms={decryptedSymptomsList} />
 
       <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5">
         <CardHeader>

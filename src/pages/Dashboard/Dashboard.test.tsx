@@ -54,6 +54,7 @@ vi.mock("@/lib/encryption", () => ({
   whenKeysReady: vi.fn().mockResolvedValue({ encryptionKey: {}, searchKey: {} }),
   whenSearchReady: vi.fn().mockResolvedValue({}),
   generateSearchTokens: vi.fn().mockResolvedValue([]),
+  decryptProfileField: vi.fn((value) => Promise.resolve(value)),
 }));
 
 const mockMetricsArray = { value: [] as Record<string, unknown>[] };
@@ -125,6 +126,7 @@ function mockAuthUser(user: typeof mockUser | null = mockUser) {
 (supabase.from as Mock).mockReturnValue({
     select: () => ({
       eq: () => ({
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
         maybeSingle: () =>
           Promise.resolve({
             data: { full_name: "User" },
@@ -296,6 +298,20 @@ describe("Dashboard", () => {
       expect(screen.getByText("AI Health Predictions")).toBeInTheDocument();
       expect(screen.getByText("Proactive health risk predictions analyzed from recent symptom logs")).toBeInTheDocument();
       expect(screen.getByText("No Active Risk Markers")).toBeInTheDocument();
+    });
+  });
+
+  // 10. Weekly Health Score card rendering
+  it("renders weekly health score card and streak badge", async () => {
+    mockAuthUser();
+    mockCachedSymptoms([]);
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Weekly Health Score")).toBeInTheDocument();
+      expect(screen.getByText("Gamified logging consistency & vital stability score")).toBeInTheDocument();
+      expect(screen.getByText("XP Checklist Breakdown")).toBeInTheDocument();
     });
   });
 });

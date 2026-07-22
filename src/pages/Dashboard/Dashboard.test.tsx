@@ -54,6 +54,7 @@ vi.mock("@/lib/encryption", () => ({
   whenKeysReady: vi.fn().mockResolvedValue({ encryptionKey: {}, searchKey: {} }),
   whenSearchReady: vi.fn().mockResolvedValue({}),
   generateSearchTokens: vi.fn().mockResolvedValue([]),
+  decryptProfileField: vi.fn((value) => Promise.resolve(value)),
 }));
 
 const mockMetricsArray = { value: [] as Record<string, unknown>[] };
@@ -125,6 +126,7 @@ function mockAuthUser(user: typeof mockUser | null = mockUser) {
 (supabase.from as Mock).mockReturnValue({
     select: () => ({
       eq: () => ({
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
         maybeSingle: () =>
           Promise.resolve({
             data: { full_name: "User" },

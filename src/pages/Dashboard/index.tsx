@@ -13,7 +13,6 @@ import { getCachedData } from "@/lib/cached-queries";
 import { decryptSymptom, type OfflineSymptom } from "@/lib/offline-db";
 import { whenEncryptionReady, decryptProfileField } from "@/lib/encryption";
 import { motion } from "framer-motion";
-import HealthTrendsChart from "@/components/dashboard/HealthTrendsChart";
 import { SmartAlertsBanner } from "@/components/dashboard/SmartAlertsBanner";
 import { WeeklyHealthScoreCard } from "@/components/dashboard/WeeklyHealthScoreCard";
 
@@ -464,6 +463,10 @@ const Dashboard = () => {
 
         </Card>
       </div>
+
+      <HealthTrendsChart userId={userId} />
+
+      <SymptomPredictions userId={userId} symptoms={decryptedSymptomsList} />
 
       <WeeklyHealthScoreCard userId={userId} symptoms={symptoms} />
 
